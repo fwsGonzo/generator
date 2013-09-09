@@ -1,0 +1,6 @@
+compile generator.c std.c biome.c stdgen.c stdpp.c
+exec testPP
+kill
+compress
+clear
+go

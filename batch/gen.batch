@@ -1,0 +1,7 @@
+compile generator.c std.c biome.c biomegen.c stdgen.c stdpp.c
+reset
+exec testGen
+kill
+compress
+clear
+go

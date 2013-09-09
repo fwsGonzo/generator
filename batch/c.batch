@@ -1,0 +1,1 @@
+compile generator.c std.c biome.c biomegen.c stdgen.c noise.c stdpp.c

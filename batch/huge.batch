@@ -1,0 +1,21 @@
+link generator.dll
+kill
+
+# offset back
+offset -x 8
+offset -z 8
+
+# generate field using __field
+field 17 17 __field
+
+# finalize field using __final
+field 17 17 __final
+
+# go back to original (center of world) position
+offset +x 8
+offset +z 8
+
+# remove temporary files
+cleanup
+
+clear

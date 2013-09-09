@@ -1,0 +1,16 @@
+# compile generator, kill old data
+.c
+kill
+
+# reset, generate, postprocess and dump
+reset
+exec testGen
+exec testPP
+
+compress
+
+cleanup
+
+# start testclient
+clear
+go

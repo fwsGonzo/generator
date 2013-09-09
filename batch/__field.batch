@@ -1,0 +1,4 @@
+reset
+exec testGen
+exec testPP
+dump

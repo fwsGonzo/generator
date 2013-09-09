@@ -1,0 +1,15 @@
+# load script, and kill old data
+compile flatworld.c flatpp.c stdpost.c generator.c biome.c biomegen.c
+kill
+
+# reset, generate, postprocess and dump
+reset
+exec flatGen
+exec flatPP
+
+compress
+cleanup
+
+# start testclient
+clear
+go

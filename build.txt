@@ -1,0 +1,10 @@
+c:\mingw64\bin\gcc
+-std=gnu99 -pipe -m32 -Ofast -mfpmath=both
+-c -Iinc
+-shared -Llib
+vec.c
+noise\cosnoise.c
+noise\multifractal.c
+noise\noise1234.c
+noise\simplex1234.c
+noise\torusnoise.c
