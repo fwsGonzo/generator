@@ -237,12 +237,12 @@ typedef unsigned short block_t;
 #define isFluid(id) (id == _WATER || id == _LAVABLOCK)
 #define isLight(id) (id == _TORCH || id == _MOLTENSTONE || id == _LAVABLOCK || id == _REDSTONE || id == _GREENSTONE || id == _FIRE || id == _LANTERN)
 
-inline int blockTransparent(block_t id)
+inline bool blockTransparent(block_t id)
 {
 	// high chance its air
-	if (isAir(id)) return 1;
-	if (id > halfblock_start) return 1;
-	return 0;
+	if (isAir(id)) return true;
+	if (id > halfblock_start) return true;
+	return false;
 }
 
 #endif

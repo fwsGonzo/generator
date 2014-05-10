@@ -11,7 +11,7 @@ BUILDOPT = -Ofast -mfpmath=both -march=native
 OUTPUT   = ./generator
 
 # code folder
-SOURCE = src
+SOURCE = src terrain/structures
 
 # resource file
 ifeq ($(OS),Windows_NT)

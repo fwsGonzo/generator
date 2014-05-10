@@ -88,6 +88,12 @@
     <File Name="terrain/vec.h"/>
     <File Name="terrain/genthread.h"/>
     <File Name="terrain/blocks.hpp"/>
+    <VirtualDirectory Name="structures">
+      <File Name="terrain/structures/block.cpp"/>
+      <File Name="terrain/structures/block.hpp"/>
+      <File Name="terrain/structures/sector.cpp"/>
+      <File Name="terrain/structures/sector.hpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="inc">
     <VirtualDirectory Name="library">
