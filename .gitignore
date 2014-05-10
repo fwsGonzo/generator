@@ -1,9 +1,43 @@
-#################
-## C++
-#################
-
+# Compiled Object files
+*.slo
+*.lo
 *.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# compressed chunks
+*.compressed
+# raw chunks
+*.chunk
+# temporary files
+*.temp
+
+# Music
+*.mp3
+
+# Executable & logs
 *.exe
 *.log
-*.rnd
-*.dll
+generator
+
+# Archives
+*.zip
+*.rar
+
+# CodeLite
+*.workspace.*
+*.tags
+*.db
+*.session
+
+# Edited files
+*~
+.codelite/
+
