@@ -2,6 +2,7 @@
 #define BLOCKS_HPP
 
 typedef unsigned short block_t;
+static const block_t airblock = 0;
 
 #define max_unique_ids  1023
 

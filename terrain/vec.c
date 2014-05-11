@@ -1,5 +1,5 @@
 #include "vec.h"
-#include <math.h>
+#include <cmath>
 
 // vector functions
 
@@ -114,16 +114,16 @@ vec3 getnormal3(f64_t n10, f64_t n01, f64_t delta)
 	f64_t z2 = delta;
 	
 	f64_t len = x1*x1 + y1*y1;
-	if (len > 0.0f)
+	if (len > 0.0)
 	{
-		len = 1.0f / sqrt(len);
+		len = 1.0 / sqrt(len);
 		x1 *= len;
 		y1 *= len;
 	}
 	len = y2*y2 + z2*z2;
-	if (len > 0.0f)
+	if (len > 0.0)
 	{
-		len = 1.0f / sqrt(len);
+		len = 1.0 / sqrt(len);
 		y2 *= len;
 		z2 *= len;
 	}

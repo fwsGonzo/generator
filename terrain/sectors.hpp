@@ -15,7 +15,7 @@ public:
 	
 	static const int MAX_HARDSOLID = 63;
 	
-	#pragma push(pack, 2)
+	#pragma pack(push, 2)
 	typedef struct
 	{
 		block_t b[BLOCKS_XZ][BLOCKS_XZ][BLOCKS_Y];
@@ -26,10 +26,10 @@ public:
 		unsigned char special;
 		unsigned char unused1;
 	} sectorblock_t;
-	#pragma pop(pack)
+	#pragma pack(pop)
 	
-	Sector(int x, int y, int z);
-	~Sector();
+	Sector() { blocks = nullptr; }
+	~Sector() { delete blocks; }
 	
 	inline wcoord_t getWX() const { return wx; }
 	inline wcoord_t getWY() const { return wy; }
@@ -46,6 +46,7 @@ public:
 	
 	// operations
 	void finish();
+	void clear();
 	inline void createBlocks()
 	{
 		blocks = new sectorblock_t;
@@ -61,6 +62,7 @@ private:
 
 class Sectors
 {
+public:
 	static const wcoord_t WORLD_SIZE   = 268435456;
 	static const wcoord_t WORLD_CENTER = WORLD_SIZE / 2;
 	
@@ -68,12 +70,18 @@ class Sectors
 	static const int BORDER     = 2;
 	static const int WATERLEVEL = 8; // water sectorlevel
 	
-	void init();
+	~Sectors() { delete[] sectors; }
+	void init(int axis_size);
 	
 	// world offsets
 	wcoord_t getWorldOffsetX() const { return worldOffsetX; }
 	wcoord_t getWorldOffsetZ() const { return worldOffsetZ; }
 	
+	// sector getters
+	inline int getXZ() const
+	{
+		return sectorsXZ;
+	}
 	Sector& operator() (int x, int y, int z)
 	{
 		return sectors[sectorsXZ * SECTORS_Y * x + SECTORS_Y * z + y];
@@ -108,10 +116,16 @@ class Flatland
 class Flatlands
 {
 public:
-	Flatland& operator() (int x, int z);
+	~Flatlands() { delete[] flats; }
+	
+	inline Flatland& operator() (int x, int z)
+	{
+		return flats[x * sectors.getXZ() + z];
+	}
 	
 private:
 	Flatland* flats;
+	friend class Sectors;
 };
 extern Flatlands flatlands;
 

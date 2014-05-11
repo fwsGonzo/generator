@@ -64,25 +64,9 @@ extern f32_t (*tricubic)(f32_t *p, f32_t x, f32_t y, f32_t z);
 #define quintic_heavy(f) ( x*x*x*x * ( 25.0 - 48.0 * x + x*x * ( 25.0 - x*x*x*x ) ) )
 #define catmull(p, x) ( p[1] + 0.5 * x*( p[2] - p[0] + x*( 2.0 * p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*( 3.0 * (p[1] - p[2]) + p[3] - p[0]) ) ) )
 
-// voronoi diagrams
-typedef float vor_weights;
-
-extern f64_t (*voronoi)(f64_t x, f64_t z, void* distfunc);
-extern void  (*voronoiGrad)(f64_t x, f64_t z, int weights, vor_weights* w);
-extern f64_t (*vor_euclidian)(f64_t, f64_t, f64_t, f64_t);
-extern f64_t (*vor_quadratic)(f64_t, f64_t, f64_t, f64_t);
-extern f64_t (*vor_linsquare)(f64_t, f64_t, f64_t, f64_t);
-extern f64_t (*vor_minkowski)(f64_t, f64_t, f64_t, f64_t);
-extern f64_t (*vor_manhattan)(f64_t, f64_t, f64_t, f64_t);
-extern f64_t (*vor_chebyshev)(f64_t, f64_t, f64_t, f64_t);
-
 // standard stuff
 #define mix(a, b, m) ((1.0 - m) * (a) + (m) * (b))
 #define FASTFLOOR(x) ( ((x)>0) ? ((int)x) : (((int)x)-1) )
-
-extern f32_t (*ramp)(f32_t r, f32_t power);
-extern f64_t (*ramp64d)(f64_t r, f64_t power);
-extern f64_t (*clamp)(f64_t a, f64_t b, f64_t value);
 
 // blocks
 extern void* (*getSectorBlock)(void* sector);
@@ -120,19 +104,5 @@ extern f32_t (*iRnd1)(void* sector, int offset);
 // terrain value noise functions
 extern f32_t (*bigRnd)(int wx, int wy, int size);
 extern f32_t (*bigRndCat)(int wx, int wy, int size);
-
-// inGen object functions
-extern void (*ingenAppleTree)(int x, int y, int z, int height);
-extern void (*ingenCactus)(int x, int y, int z, int height);
-extern void (*ingenBigDarkTree)(int x, int y, int z, int height);
-extern void (*ingenJungleTree)(int x, int y, int z, int height);
-extern void (*ingenTreeA)(int x, int y, int z, int height);
-extern void (*ingenPalm)(int x, int y, int z, int height);
-extern void (*ingenPine)(int x, int y, int z, int height);
-extern void (*ingenJungleTreeB)(int x, int y, int z, int h);
-
-// special object functions
-extern void (*ingenWildMushroom)(int x, int y, int z);
-extern void (*ingenStrangeShroom)(int x, int y, int z);
 
 #endif

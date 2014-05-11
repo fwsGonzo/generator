@@ -11,7 +11,7 @@ BUILDOPT = -Ofast -mfpmath=both -march=native
 OUTPUT   = ./generator
 
 # code folder
-SOURCE = src terrain/structures
+SOURCE = src terrain
 
 # resource file
 ifeq ($(OS),Windows_NT)
@@ -23,7 +23,7 @@ endif
 # compiler
 CC = g++ $(BUILDOPT) -std=c++11
 # compiler flags
-CCFLAGS = -c -Wall -Wextra -pedantic -Iinc
+CCFLAGS = -c -Wall -Wextra -pedantic -Iinc -Iterrain
 # linker flags
 LFLAGS  = -Llib -llibrary -llzo2 -Wl,-rpath,../lib
 ifeq ($(OS),Windows_NT)
