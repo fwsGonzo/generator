@@ -4,6 +4,13 @@
 typedef unsigned short block_t;
 static const block_t airblock = 0;
 
+typedef struct
+{
+	unsigned short id      : 10;
+	unsigned short facing  :  2;
+	unsigned short special :  4;
+} block;
+
 #define max_unique_ids  1023
 
 #define air_end           23

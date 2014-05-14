@@ -1,11 +1,13 @@
 #include "generator.hpp"
 
-#include "blocks.hpp"
-#include "generator.h"
-#include "genthread.h"
-#include "vec.h"
-#include "biome/biome.hpp"
-#include "noise/simplex1234.h"
+#include <blocks.hpp>
+#include <generator.h>
+#include <genthread.h>
+#include <random.hpp>
+#include <sectors.hpp>
+#include <vec.h>
+#include <biome/biome.hpp>
+#include <noise/simplex1234.h>
 #include "terrain.hpp"
 #include <math.h>
 
@@ -140,8 +142,8 @@ void terrainGenerator(genthread* l_thread)
 	#define ngrid 8
 	#define ygrid 4 // not yet used
 	
-	const f64_t grid_pfac = BLOCKS_XZ / (f64_t)ngrid;
-	const f64_t grid_wfac = 1.0 / (BLOCKS_XZ * BLOCKS_XZ);
+	const f64_t grid_pfac = Sector::BLOCKS_XZ / (f64_t)ngrid;
+	const f64_t grid_wfac = 1.0 / (Sector::BLOCKS_XZ * Sector::BLOCKS_XZ);
 	// noise data
 	f32_t noisearray[ngrid+1][ngrid+1];
 	f32_t cavesarray[ngrid+1][ngrid+1];
@@ -177,7 +179,7 @@ void terrainGenerator(genthread* l_thread)
 	biome_t* biomeptr;
 	int i, terrain_id;
 	
-	void* s = 0x0; // sector ptr
+	Sector* s = nullptr;
 	int by;  // local sector coordinate (0 .. 7)
 	f32_t density, caves, beach;
 	block_t id = _AIR;
@@ -243,24 +245,22 @@ void terrainGenerator(genthread* l_thread)
 		} // grid x
 		
 		// internal sector coordinate
-		by = y & (BLOCKS_Y-1);
+		by = y & (Sector::BLOCKS_Y-1);
 		// if at the top of a new sector, get sector pointer
-		if (by == BLOCKS_Y-1) s = getSector(wx, y >> 3, wz);
-		
-		block_t* sb = (block_t*) getSectorBlock(s);
+		if (by == Sector::BLOCKS_Y-1) s = &sectors(wx, y >> 3, wz);
 		
 		// set generic blocks using getTerrainSimple()
 		// interpolate using linear bore-a-thon
 		
-		for (x = 0; x < BLOCKS_XZ; x++)
+		for (x = 0; x < Sector::BLOCKS_XZ; x++)
 		{
-			fx = (f32_t)x / (f32_t)BLOCKS_XZ * (f32_t)ngrid;
+			fx = (f32_t)x / (f32_t)Sector::BLOCKS_XZ * ngrid;
 			bx = (int)fx; // start x
 			frx = fx - (f32_t)bx;
 			
-			for (z = 0; z < BLOCKS_XZ; z++)
+			for (z = 0; z < Sector::BLOCKS_XZ; z++)
 			{
-				fz = (f32_t)z / (f32_t)BLOCKS_XZ * (f32_t)ngrid;
+				fz = (f32_t)z / (f32_t)Sector::BLOCKS_XZ * ngrid;
 				bz = (int)fz; // integral
 				frz = fz - (f32_t)bz; // fractional
 				
@@ -290,10 +290,9 @@ void terrainGenerator(genthread* l_thread)
 					if (id)
 					{
 						// create only on-demand!
-						if (!sb) sb = (block_t*) createSectorBlock(s);
+						if (s->hasBlocks() == false) s->createBlocks();
 						// directly set block value
-						sb[x * BLOCKS_XZ * BLOCKS_Y + z * BLOCKS_Y + by] = id;
-						
+						s[0](x, by, z) = id;
 					}
 				}
 				

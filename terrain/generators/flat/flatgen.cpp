@@ -1,19 +1,20 @@
-
-/*
-	Flat world generator
-*/
-// sadface :(
-#include "blocks.hpp"
+/**
+ * Flat world generator
+ * 
+**/
 #include "generator.h"
 #include "genthread.h"
+#include <sectors.hpp>
+#include <blocks.hpp>
 #include "biome/biome.hpp"
 #include "noise/simplex1234.h"
+//#include "random.hpp"
 
-// the main generator!
+// flat terrain generation function
 
 void flatTerrain(genthread* l_thread)
 {
-	void* s = 0x0;
+	Sector* s = nullptr;
 	int wx = l_thread->x, wz = l_thread->z;
 	int x, y, z;
 	vec3 p;
@@ -22,11 +23,11 @@ void flatTerrain(genthread* l_thread)
 	unsigned short id = _AIR;
 	
 	// some noise
-	const f64_t grid_wfac = 1.0 / (f64_t)(BLOCKS_XZ * BLOCKS_XZ);
-	float simplex[BLOCKS_XZ][BLOCKS_XZ];
+	const f64_t grid_wfac = 1.0 / (f64_t)(Sector::BLOCKS_XZ * Sector::BLOCKS_XZ);
+	float simplex[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
 	
-	for (x = 0; x < BLOCKS_XZ; x++)
-	for (z = 0; z < BLOCKS_XZ; z++)
+	for (x = 0; x < Sector::BLOCKS_XZ; x++)
+	for (z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
 		p.x = l_thread->p.x + (f64_t)x * grid_wfac;
 		p.z = l_thread->p.z + (f64_t)z * grid_wfac;
@@ -39,13 +40,13 @@ void flatTerrain(genthread* l_thread)
 		p.y = (f64_t)y / (f64_t)GEN_FULLHEIGHT;
 		
 		// internal sector coordinate
-		by = y & (BLOCKS_Y-1);
+		by = y & (Sector::BLOCKS_Y-1);
 		// if at the top of a new sector, get sector pointer
-		if (by == BLOCKS_Y-1) s = getSector(wx, y >> 3, wz);
+		if (by == Sector::BLOCKS_Y-1) s = &sectors(wx, y >> 3, wz);
 		
-		for (x = 0; x < BLOCKS_XZ; x++)
+		for (x = 0; x < Sector::BLOCKS_XZ; x++)
 		{
-			for (z = 0; z < BLOCKS_XZ; z++)
+			for (z = 0; z < Sector::BLOCKS_XZ; z++)
 			{
 				/*
 					Make a flat world

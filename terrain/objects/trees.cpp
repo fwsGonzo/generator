@@ -4,12 +4,13 @@
 #include "generator.h"
 #include "vec.h"
 #include "helpers.hpp"
+#include "random.hpp"
 #include <cstdlib>
 #include <math.h>
 
 void otreeSphere(int gx, int gy, int gz)
 {
-	int height = 8 + iRnd(gx, gy, gz) * 12;
+	int height = 8 + randf(gx, gy, gz) * 12;
 	int rad = height * 0.25;
 	
 	float r;
@@ -61,7 +62,7 @@ void otreeSabal(int gx, int gy, int gz, int height)
 	const float straightness = 1.5; // higher number = straighter stem
 	
 	// make stem
-	vec3 dir = (vec3) { iRnd(gx + 1, gy, gz - 1), straightness, iRnd(gx - 1, gy, gz + 1) };
+	vec3 dir = (vec3) { randf(gx + 1, gy, gz - 1), straightness, randf(gx - 1, gy, gz + 1) };
 	makenorm3v(&dir); // from 0.0->1.0 to -1.0->1.0
 	norm3v(&dir);     // normalize
 	
@@ -88,7 +89,7 @@ void otreeSabal(int gx, int gy, int gz, int height)
 		// actual ray
 		ray = (vec3) { x + 0.5, (double)y, z + 0.5 };
 		// create direction
-		dir = (vec3) { iRnd(x + n, y - n * 31, gz - n * 31), 1.0, iRnd(x + n * 31, y + n * 31, z - n) };
+		dir = (vec3) { randf(x + n, y - n * 31, gz - n * 31), 1.0, randf(x + n * 31, y + n * 31, z - n) };
 		makenorm3v(&dir); // from 0.0->1.0 to -1.0->1.0
 		norm3v(&dir);     // normalize
 		
@@ -116,7 +117,7 @@ void otreeVine(int gx, int gy, int gz, int facing)
 		case 3: gx--; break;
 	}
 	
-	int height = 3 + iRnd(gx, gy+31, gz) * 13;
+	int height = 3 + randf(gx, gy+31, gz) * 13;
 	
 	int y;
 	for (y = 0; y < height; y++)
@@ -160,7 +161,7 @@ void otreeJungleVines(int gx, int gy, int gz, int height)
 				
 				if ((int)r == (int)rad) {
 					// drop vine
-					if (iRnd(x+dx+7, dy, z+dz-3) < 0.25)
+					if (randf(x+dx+7, dy, z+dz-3) < 0.25)
 						otreeVine(x+dx, dy - r * dive, z+dz, ofacing(dx, dz));
 					
 				}
@@ -175,19 +176,19 @@ void otreeJungleVines(int gx, int gy, int gz, int height)
 		// sides
 		if (y < height-2) {
 			setb(gx, gy + y, gz+1, _WOODPALM, 1, 0);
-			if (iRnd(gx, gy + y, gz+2) < 0.8)
+			if (randf(gx, gy + y, gz+2) < 0.8)
 				setb(gx, gy + y, gz+2, _VINES, 0, 0);
 			
 			setb(gx, gy + y, gz-1, _WOODPALM, 1, 0);
-			if (iRnd(gx, gy + y, gz-2) < 0.8)
+			if (randf(gx, gy + y, gz-2) < 0.8)
 				setb(gx, gy + y, gz-2, _VINES, 0, 1);
 			
 			setb(gx+1, gy + y, gz, _WOODPALM, 1, 0);
-			if (iRnd(gx+2, gy + y, gz) < 0.8)
+			if (randf(gx+2, gy + y, gz) < 0.8)
 				setb(gx+2, gy + y, gz, _VINES, 0, 2);
 			
 			setb(gx-1, gy + y, gz, _WOODPALM, 1, 0);
-			if (iRnd(gx-2, gy + y, gz) < 0.8)
+			if (randf(gx-2, gy + y, gz) < 0.8)
 				setb(gx-2, gy + y, gz, _VINES, 0, 3);
 		}
 	}
@@ -204,8 +205,8 @@ void otreeHugeBranch(int gx, int gy, int gz, float rad, int length)
 	int n = 0;
 	while (fabs(jitter_x) + fabs(jitter_z) < minjitter)
 	{
-		jitter_x = iRnd(gx + n, gy+77, gz+53) * maxjitter - maxjitter * 0.5;
-		jitter_z = iRnd(gx - n, gy+77, gz-53) * maxjitter - maxjitter * 0.5;
+		jitter_x = randf(gx + n, gy+77, gz+53) * maxjitter - maxjitter * 0.5;
+		jitter_z = randf(gx - n, gy+77, gz-53) * maxjitter - maxjitter * 0.5;
 		n++;
 	}
 	
@@ -292,10 +293,10 @@ void otreeHuge(int gx, int gy, int gz, int height)
 		
 		dx += jitter_x;
 		jitter_x *= jitt_red;
-		if (fabsf(jitter_x) < minjitter) jitter_x = iRnd(dx+31, gy+y+77, dz) * maxjitter - maxjitter * 0.5;
+		if (fabsf(jitter_x) < minjitter) jitter_x = randf(dx+31, gy+y+77, dz) * maxjitter - maxjitter * 0.5;
 		dz += jitter_z;
 		jitter_z *= jitt_red;
-		if (fabsf(jitter_z) < minjitter) jitter_z = iRnd(dx-31, gy+y+77, dz) * maxjitter - maxjitter * 0.5;
+		if (fabsf(jitter_z) < minjitter) jitter_z = randf(dx-31, gy+y+77, dz) * maxjitter - maxjitter * 0.5;
 		
 	}
 	rad0 *= 0.6;

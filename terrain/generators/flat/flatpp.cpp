@@ -4,6 +4,8 @@
 #include "generator.h"
 #include "genthread.h"
 #include "noise/simplex1234.h"
+#include "random.hpp"
+#include "sectors.hpp"
 
 #include "objects/house.hpp"
 #include "objects/trees.hpp"
@@ -15,7 +17,7 @@ block_t flat_grass[6] = { _GRASS_LONG, _GRASS_SHORT, _FLOWERREDMAG, _FLOWERROSE,
 #define biome_stone  _STONE
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
-#define getCross(c_array) c_array[ (int)(iRnd(dx, dy+1, dz) * ARRAY_SIZE(c_array)) ]
+#define getCross(c_array) c_array[ (int)(randf(dx, dy+1, dz) * ARRAY_SIZE(c_array)) ]
 
 
 // simple post-processor for flat worlds
@@ -28,11 +30,11 @@ void flatPostProcess(genthread* l_thread)
 	// world coordinates
 	int wx = l_thread->x, wz = l_thread->z;
 	
-	void* flat = getFlatland( wx, wz );
+	Flatland* flat = getFlatland( wx, wz );
 	
 	// absolute block coords
-	int x = wx * BLOCKS_XZ;
-	int z = wz * BLOCKS_XZ;
+	int x = wx * Sector::BLOCKS_XZ;
+	int z = wz * Sector::BLOCKS_XZ;
 	vec3 p;
 	
 	int dx, dy, dz;
@@ -41,16 +43,20 @@ void flatPostProcess(genthread* l_thread)
 	int counter;
 	int air;
 	
-	for (dx = x; dx < x + BLOCKS_XZ; dx++)
+	static const int BlocksSquared = Sector::BLOCKS_XZ * Sector::BLOCKS_XZ;
+	
+	for (dx = x; dx < x + Sector::BLOCKS_XZ; dx++)
 	{
-		p.x = l_thread->p.x + (double)(dx - x) / (double)(BLOCKS_XZ * BLOCKS_XZ);
+		p.x = l_thread->p.x + (double)(dx - x) / (double)BlocksSquared;
 		
-		for (dz = z; dz < z + BLOCKS_XZ; dz++)
+		for (dz = z; dz < z + Sector::BLOCKS_XZ; dz++)
 		{
-			p.z = l_thread->p.z + (double)(dz - z) / (double)(BLOCKS_XZ * BLOCKS_XZ);
+			p.z = l_thread->p.z + (double)(dz - z) / (double)BlocksSquared;
 			
 			// set dummy terrain
-			setTerrain(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1), 4);
+			setTerrain(flat, 
+				dx & (Sector::BLOCKS_XZ-1), 
+				dz & (Sector::BLOCKS_XZ-1), 4);
 			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock;
@@ -86,16 +92,17 @@ void flatPostProcess(genthread* l_thread)
 							b->id++; // *SOIL to *GRASS_S
 							
 							// find center of world
+							/*
 							if ( x == ((BLOCKS_XZ * SECTORS_XZ) >> 1) && z == ((BLOCKS_XZ * SECTORS_XZ) >> 1) )
 							{
 								// create object here
-								//createHouse(x, dy+1, z);
-							}
+								createHouse(x, dy+1, z);
+							}*/
 							
 							
 						}
 						
-						f32_t rand = iRnd(dx, dy, dz); // TODO: use poisson disc here
+						f32_t rand = randf(dx, dy, dz); // TODO: use poisson disc here
 						
 						// create objects!
 						switch (b->id) {
@@ -109,7 +116,7 @@ void flatPostProcess(genthread* l_thread)
 								if (rand < 0.6 && air > 32)
 								if (snoise2(p.x * 2.0, p.z * 2.0) < 0.0)
 								{
-									int height = 10 + iRnd(dx, dy-1, dz) * 20;
+									int height = 10 + randf(dx, dy-1, dz) * 20;
 									//otreeJungleVines(dx, dy+1, dz, height);
 									//otreeHuge(dx, dy+1, dz, height);
 									otreeBirch(dx, dy+1, dz, height);

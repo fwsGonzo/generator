@@ -3,7 +3,7 @@
 #include "generator.h"
 #include "blocks.hpp"
 #include "vec.h"
-#include <math.h>
+#include <cmath>
 
 #include "noise/cosnoise.h"
 #include "noise/simplex1234.h"
@@ -15,6 +15,13 @@
 // individual noise functions for each terrain type
 
 f32_t lower_grass(vec3 p);
+
+inline double ramp(double x, double p)
+{
+	if (x < 0.0) return 0.0;
+	if (x > 1.0) return 1.0;
+	return std::pow(x, p);
+}
 
 float getnoise_caves(vec3 p)
 {

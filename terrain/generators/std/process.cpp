@@ -1,10 +1,12 @@
 #include "process.hpp"
 
-#include "blocks.hpp"
-#include "generator.h"
-#include "genthread.h"
-#include "vec.h"
-#include "biome/biome.hpp"
+#include <blocks.hpp>
+#include <generator.h>
+#include <genthread.h>
+#include <random.hpp>
+#include <sectors.hpp>
+#include <vec.h>
+#include <biome/biome.hpp>
 #include "objects/trees.hpp"
 #include "objects/mushrooms.hpp"
 #include "objects/volumetrics.hpp"
@@ -24,8 +26,8 @@ block_t terrain_grass [T_TERRAINS]  = { _SNOWSOIL, _SNOWGRASS_S, _GREENGRASS_S, 
 block_t terrain_beach [T_TERRAINS]  = { _SANDBEACH,_SANDBEACH,   _SANDBEACH,    _SANDBEACH,    _SANDBEACH,    _GREENSOIL,    _GREENSOIL,     _SANDBEACH };
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
-#define getCross(c_array) c_array[ (int)(iRnd(dx, dy+1, dz) * ARRAY_SIZE(c_array)) ]
-#define getCrossExt(c_array, n) c_array[ (int)(iRnd(dx, dy+1, dz) * n) ]
+#define getCross(c_array) c_array[ (int)(randf(dx, dy+1, dz) * ARRAY_SIZE(c_array)) ]
+#define getCrossExt(c_array, n) c_array[ (int)(randf(dx, dy+1, dz) * n) ]
 
 #define NUM_ORES  6
 // ore deposit id
@@ -46,40 +48,42 @@ void areaPostProcess(genthread* l_thread)
 	int wz = l_thread->z;
 	
 	// absolute block coords
-	int x = wx * BLOCKS_XZ;
-	int z = wz * BLOCKS_XZ;
+	int x = wx * Sector::BLOCKS_XZ;
+	int z = wz * Sector::BLOCKS_XZ;
 	
-	void* flat = getFlatland( wx, wz );
+	Flatland* flat = getFlatland( wx, wz );
 	int terrain;
 	
-	void* sector; // sector pointer, used with iRnd2(sector, x, y, z)
 	vec3 p;       // world coordinates for noise
 	int dx, dy, dz;
 	block *lastb, *b;
 	block airblock = (block) {0, 0, 0};
 	int counter, lastcounter;
-	int air, spcounter, soilcounter, leafcounter;
+	int air, spcounter, soilcounter;
 	
 	// ore deposit _max_ count per column
 	int     depo_count[NUM_ORES] = {   40,    20,    10,      15,        15,          7    };
 	
+	static const int BlocksSquared = Sector::BLOCKS_XZ * Sector::BLOCKS_XZ;
 	
-	for (dx = x; dx < x + BLOCKS_XZ; dx++)
+	for (dx = x; dx < x + Sector::BLOCKS_XZ; dx++)
 	{
 		// world coordinate X
-		p.x = l_thread->p.x + (double)(dx - x) / (double)(BLOCKS_XZ * BLOCKS_XZ);
+		p.x = l_thread->p.x + (double)(dx - x) / (double) BlocksSquared;
 		
-		for (dz = z; dz < z + BLOCKS_XZ; dz++)
+		for (dz = z; dz < z + Sector::BLOCKS_XZ; dz++)
 		{
 			// world coordinate Z
-			p.z = l_thread->p.z + (double)(dz - z) / (double)(BLOCKS_XZ * BLOCKS_XZ);
+			p.z = l_thread->p.z + (double)(dz - z) / (double) BlocksSquared;
 			
 			// gravel / stone areas
 			f64_t groundtype = snoise2(p.x * 1.0, p.z * 1.0) * 0.8 + 
 							   snoise2(p.x * 5.0, p.z * 5.0) * 0.2;
 			
 			// get terrain id
-			terrain = getTerrain(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1));
+			terrain = getTerrain(flat, 
+				dx & (Sector::BLOCKS_XZ-1), 
+				dz & (Sector::BLOCKS_XZ-1));
 			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock; // prevent null pointer in this case
@@ -92,7 +96,6 @@ void areaPostProcess(genthread* l_thread)
 			
 			for (dy = maxy; dy >= miny; dy--)
 			{
-				sector = getSector(wx, dy >> 3, wz);
 				b = getb(dx, dy, dz);
 				
 				// seal bottom :)
@@ -193,13 +196,13 @@ void areaPostProcess(genthread* l_thread)
 								if (terrain == T_SNOW || terrain == T_ICECAP)  // cover with snow
 								{
 									// needs an atmospheric tracer
-									if (air >= GEN_FULLHEIGHT) setb(dx, dy+1, dz, _LOWSNOW, GEN_FALSE, 0);
+									if (air >= GEN_FULLHEIGHT) setb(dx, dy+1, dz, _LOWSNOW, false, 0);
 								}
 							}
 							
 						} // test
 						
-						f32_t rand = iRnd(dx, dy, dz); // TODO: use poisson disc here
+						f32_t rand = randf(dx, dy, dz); // TODO: use poisson disc here
 						
 						/////////////////////////////////////////
 						// create objects, and litter crosses! //
@@ -215,11 +218,11 @@ void areaPostProcess(genthread* l_thread)
 								{
 									if (snoise2(p.x * 1.8, p.z * 1.8) > 0.25)
 									{
-										int height = 8 + iRnd(dx, dy+1, dz) * 12;
+										int height = 8 + randf(dx, dy+1, dz) * 12;
 										
 										// top cap
-										if (dy + height < 200)
-											ingenPine(dx, dy+1, dz, height);
+										//if (dy + height < 200)
+										//	ingenPine(dx, dy+1, dz, height);
 									}
 									else if (rand < 0.01)
 									{	// setting a cross using 0 = no overwrite, 0 = facing (crosses don't have facing)
@@ -240,11 +243,11 @@ void areaPostProcess(genthread* l_thread)
 								{
 									if (snoise2(p.x * 1.8, p.z * 1.8) > 0.25)
 									{
-										int height = 8 + iRnd(dx, dy+1, dz) * 12;
+										//int height = 8 + randf(dx, dy+1, dz) * 12;
 										
 										// top cap
-										if (dy + height < 200)
-											ingenPine(dx, dy+1, dz, height);
+										//if (dy + height < 200)
+										//	ingenPine(dx, dy+1, dz, height);
 									}
 									else if (rand < 0.05)
 									{
@@ -275,10 +278,10 @@ void areaPostProcess(genthread* l_thread)
 								if ((x & distance) == 0  &&  (z & distance) == 0)
 								if (snoise2(p.x * 2.0, p.z * 2.0) < 0.0)
 								{
-									int height = 8 + iRnd(dx, dy+1, dz) * 16;
+									//int height = 8 + randf(dx, dy+1, dz) * 16;
 									
-									if (dy + height < GEN_FULLHEIGHT)
-										ingenBigDarkTree(dx, dy+1, dz, height);
+									//if (dy + height < GEN_FULLHEIGHT)
+									//	ingenBigDarkTree(dx, dy+1, dz, height);
 								}
 								
 							} else if (rand < 0.2) {
@@ -296,7 +299,7 @@ void areaPostProcess(genthread* l_thread)
 							// ministry of icelandic forestry
 							if (rand < 0.00003 && air > 32) {
 								
-								int height = (int)(iRnd(dx, dy+1, dz) * 15) + 12;
+								int height = (int)(randf(dx, dy+1, dz) * 15) + 12;
 								if (dy + height < 160)
 									omushStrangeShroom(dx, dy+1, dz, height);
 								
@@ -307,12 +310,12 @@ void areaPostProcess(genthread* l_thread)
 								if ((x & distance) == 0  &&  (z & distance) == 0)
 								if (snoise2(p.x * 2.5, p.z * 2.5) < 0.0)
 								{
-									int height = 8 + iRnd(dx, dy+1, dz) * 12;
+									int height = 8 + randf(dx, dy+1, dz) * 12;
 									if (dy + height < GEN_FULLHEIGHT)
 									{	if (rand > 0.015)
 											otreeBirch(dx, dy+1, dz, height);
-										else
-											ingenTreeA(dx, dy+1, dz, height );
+										//else
+										//	ingenTreeA(dx, dy+1, dz, height );
 									}
 								}
 								
@@ -337,14 +340,14 @@ void areaPostProcess(genthread* l_thread)
 								{
 									if (rand < 0.00006 * 0.5)
 									{
-										int height = iRnd(dx, dy+1, dz) * 20 + 40;
+										int height = randf(dx, dy+1, dz) * 20 + 40;
 										if (dy + height < 160)
 											omushWildShroom(dx, dy+1, dz, height);
 										
 									}
 									else
 									{
-										int height = (int)(iRnd(dx, dy+1, dz) * 15) + 12;
+										int height = (int)(randf(dx, dy+1, dz) * 15) + 12;
 										if (dy + height < 160)
 											omushStrangeShroom(dx, dy+1, dz, height);
 									}
@@ -359,7 +362,7 @@ void areaPostProcess(genthread* l_thread)
 								{
 									if (snoise2(p.x * 2.0, p.z * 2.0) < 0.0)
 									{
-										int height = 6 + iRnd(dx, dy-1, dz) * 14;
+										int height = 6 + randf(dx, dy-1, dz) * 14;
 										if (dy + height < 160)
 											otreeHuge(dx, dy+1, dz, height);
 										
@@ -385,7 +388,7 @@ void areaPostProcess(genthread* l_thread)
 							// marsh terrain
 							if (rand < 0.0006 && air > 20) {
 								
-								int height = 20 + iRnd(dx, dy-1, dz) * 32;
+								int height = 20 + randf(dx, dy-1, dz) * 32;
 								
 								if (dy < GEN_FULLHEIGHT * 0.6)
 								if (height < air)
@@ -411,10 +414,10 @@ void areaPostProcess(genthread* l_thread)
 							// jungle terrain
 							if (rand < 0.00075 && air > 40)
 							{
-								int height = 16 + iRnd(dx, dy-1, dz) * 32;
+								//int height = 16 + randf(dx, dy-1, dz) * 32;
 								
-								if (dy + height < GEN_FULLHEIGHT)
-									ingenJungleTree( dx, dy+1, dz, height );
+								//if (dy + height < GEN_FULLHEIGHT)
+								//	ingenJungleTree( dx, dy+1, dz, height );
 								
 							}
 							else if (rand < 0.25)
@@ -437,15 +440,15 @@ void areaPostProcess(genthread* l_thread)
 							// desert terrain
 							if (rand < 0.0001)
 							{
-								int height = 12 + iRnd(dx, dy+1, dz) * 24;
+								//int height = 12 + randf(dx, dy+1, dz) * 24;
 								
-								if (dy < GEN_WATERBLOCKS + 64)
-									ingenCactus(dx, dy+1, dz, height );
+								//if (dy < GEN_WATERBLOCKS + 64)
+								//	ingenCactus(dx, dy+1, dz, height );
 								
 							}
 							else if (rand < 0.001 && air > 7)
 							{
-								int by, height = iRnd(dx, dy+1, dz) * 4;
+								int by, height = randf(dx, dy+1, dz) * 4;
 								
 								for (by = 0; by <= height; by++)
 									setb( dx, dy+1 + by, dz, _CACTUS, 1, 0 );
@@ -459,14 +462,14 @@ void areaPostProcess(genthread* l_thread)
 								{
 									if (rand < 0.0015 && air > 24)
 									{
-										int height = 12 + iRnd(dx, dy+1, dz) * 20;
+										int height = 12 + randf(dx, dy+1, dz) * 20;
 										otreeSabal(dx, dy+1, dz, height);
 										
 									}
 									else
 									{
-										int height = 10 + iRnd(dx, dy+1, dz) * 8;
-										ingenPalm(dx, dy+1, dz, height );
+										//int height = 10 + randf(dx, dy+1, dz) * 8;
+										//ingenPalm(dx, dy+1, dz, height );
 									}
 								}
 								
@@ -601,7 +604,7 @@ void areaPostProcess(genthread* l_thread)
 					#define ORE_CHANCE  (fy * 0.025)
 					fy = ORE_CHANCE;
 					
-					f32_t rand = iRnd2(sector, dx, dy-2, dz);
+					f32_t rand = randf(dx, dy-2, dz);
 					
 					if (rand < fy) {
 						// try to deposit ore
@@ -630,7 +633,7 @@ void areaPostProcess(genthread* l_thread)
 void pp_depositOre(int ore, int* orecount, int x, int y, int z)
 {
 	// find number of deposits
-	int count = orecount[0] * iRnd(x+40, y-10, z-30);
+	int count = orecount[0] * randf(x+40, y-10, z-30);
 	// clamp value, in case of too many
 	if (count > orecount[0]) count = orecount[0];
 	
@@ -642,7 +645,7 @@ void pp_depositOre(int ore, int* orecount, int x, int y, int z)
 		setb(x, y, z, depo_ores[ore], 1, 0); // set block id
 		orecount[0]--;  // decrease deposition count
 		
-		dir = (int)( iRnd(x-15, y-4, z+12) * 64.0 ); // find next direction
+		dir = (int)( randf(x-15, y-4, z+12) * 64.0 ); // find next direction
 		
 		if (dir &  1) z++;
 		if (dir &  2) z--;

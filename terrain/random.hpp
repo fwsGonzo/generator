@@ -1,11 +1,10 @@
 ///
-/// hash algorithm for randomness that isn't random at all
+/// hash algorithm for randomness that doesn't need good distribution
 ///
 #ifndef RANDOM_HPP
 #define RANDOM_HPP
 
 #include <cstdint>
-#include <cmath>
 
 inline unsigned int hash(unsigned int x)
 {
@@ -21,17 +20,17 @@ inline int ihash(int x)
 	return hash(x) & INT32_MAX;
 }
 
-inline float fhash(int x)
+inline float randf(int x)
 {
 	return ihash(x) / (float)INT32_MAX;
 }
-inline float fhash(int x, int y)
+inline float randf(int x, int y)
 {
-	return fhash(x xor ihash(y));
+	return randf(x xor ihash(y));
 }
-inline float fhash(int x, int y, int z)
+inline float randf(int x, int y, int z)
 {
-	return fhash(x xor ihash(y) xor ihash(z));
+	return randf(x xor ihash(y) xor ihash(z));
 }
 
 #endif

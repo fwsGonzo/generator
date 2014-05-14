@@ -1,8 +1,12 @@
 #include "helpers.hpp"
 
+
 #include "blocks.hpp"
 #include "generator.h"
-#include <math.h>
+#include "random.hpp"
+#include <cmath>
+
+using namespace std;
 
 int ofacing(int dx, int dz)
 {	// +z = 0 (front), -z = 1 (back), +x = 2 (right), -x = 3 (left)
@@ -21,9 +25,10 @@ int ofacingNeg(int dx, int dz)
 	}
 }
 
-int coretest(int x, int y, int z, int rad)
+bool coretest(int x, int y, int z, int rad)
 {
-	int dx, dy, dz; block* b;
+	int dx, dy, dz;
+	block* b;
 	
 	for (dx = x - rad; dx < x + rad; dx++)
 	for (dz = z - rad; dz < z + rad; dz++)
@@ -31,14 +36,14 @@ int coretest(int x, int y, int z, int rad)
 		for (dy = y; dy < y + 4; dy++)
 		{
 			// same-level (exit when not AIR)
-			b = getb(dx, dy, dz); if (!b) return GEN_FALSE;
-			if (b->id != _AIR) return GEN_FALSE;
+			b = getb(dx, dy, dz); if (!b) return false;
+			if (b->id != _AIR) return false;
 		}
 		// below (exit when AIR)
-		b = getb(dx, y-1, dz); if (!b) return GEN_FALSE;
-		if (b->id == _AIR) return GEN_FALSE;
+		b = getb(dx, y-1, dz); if (!b) return false;
+		if (b->id == _AIR) return false;
 	}
-	return GEN_TRUE;
+	return true;
 }
 
 void downSpider(int x, int y, int z, block_t id, int tries)
@@ -102,7 +107,7 @@ void oellipsoidXY(int x, int y, int z, int radius, float radx, float rady, float
 		if (r <= 1) {
 			if (r < 0.65)
 				setb(x+dx, y+dy, z, id, 0, 0);
-			else if (iRnd(x+dx, y+dy, z+613) < stencil)
+			else if (randf(x+dx, y+dy, z+613) < stencil)
 			// always passes with stencil = 1.0, never passes with 0.0
 				setb(x+dx, y+dy, z, id, 0, 0);
 		}
@@ -136,7 +141,7 @@ void obell(int x, int y, int z, block_t id, int lower, int height, int radius, i
 			{
 				if (stencilchance < 1.0 && radxz >= radf-8)
 				{
-					if (iRnd(x+dx, y+dy, z+dz) < stencilchance)
+					if (randf(x+dx, y+dy, z+dz) < stencilchance)
 						setb(x+dx, y+dy, z+dz, id, 1, 0);
 				}
 				else

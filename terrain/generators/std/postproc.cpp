@@ -1,9 +1,10 @@
 #include "postproc.hpp"
 
-#include "blocks.hpp"
-#include "generator.h"
-#include "genthread.h"
-#include "biome/biome.hpp"
+#include <biome/biome.hpp>
+#include <blocks.hpp>
+#include <generator.h>
+#include <genthread.h>
+#include <sectors.hpp>
 
 void postPostProcess(genthread* l_thread)
 {
@@ -14,31 +15,22 @@ void postPostProcess(genthread* l_thread)
 	int wx = l_thread->x, wz = l_thread->z;
 	
 	// absolute block coords
-	int x = wx * BLOCKS_XZ, z = wz * BLOCKS_XZ;
+	int x = wx * Sector::BLOCKS_XZ;
+	int z = wz * Sector::BLOCKS_XZ;
 	
-	void* flat = getFlatland( wx, wz );
-	int terrain;
+	Flatland* flat = getFlatland( wx, wz );
 	
-	void* sector; // sector pointer, used with iRnd2(sector, x, y, z)
-	vec3 p;       // world coordinates for noise
 	int dx, dy, dz;
-	block *lastb, *b;
+	block *lastb;
 	block airblock = (block) {0, 0, 0};
-	int counter, lastcounter;
+	int counter;
 	int air, treecount;
 	int skyLevel, groundLevel;
 	
-	for (dx = x; dx < x + BLOCKS_XZ; dx++)
+	for (dx = x; dx < x + Sector::BLOCKS_XZ; dx++)
 	{
-		p.x = l_thread->p.x + (double)(dx - x) / (BLOCKS_XZ * BLOCKS_XZ);
-		
-		for (dz = z; dz < z + BLOCKS_XZ; dz++)
+		for (dz = z; dz < z + Sector::BLOCKS_XZ; dz++)
 		{
-			p.z = l_thread->p.z + (double)(dz - z) / (BLOCKS_XZ * BLOCKS_XZ);
-			
-			// get terrain id
-			terrain = getTerrain(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1));
-			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock; // prevent null pointer in this case
 			
@@ -50,8 +42,7 @@ void postPostProcess(genthread* l_thread)
 			
 			for (dy = maxy; dy >= miny; dy--)
 			{
-				sector = getSector(wx, dy >> 3, wz);
-				b = getb(dx, dy, dz);
+				block* b = getb(dx, dy, dz);
 				
 				if (isLeaf(b->id)) treecount++;
 				
@@ -69,7 +60,7 @@ void postPostProcess(genthread* l_thread)
 					
 					// remember this id! and reset counters!
 					lastb = b;
-					lastcounter = counter;  counter = 0;
+					counter = 0;
 					
 					// skylevel (minimap, shadows etc.)
 					// not: air, vines, crosses
@@ -99,7 +90,10 @@ void postPostProcess(genthread* l_thread)
 			if (treecount)
 			{
 				// get grass color
-				cl_rgb* color = getColor(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1), CL_GRASS);
+				cl_rgb* color = getColor(flat, 
+					dx & (Sector::BLOCKS_XZ-1), 
+					dz & (Sector::BLOCKS_XZ-1), 
+					CL_GRASS);
 				
 				if (treecount > 16) treecount = 16;
 				
@@ -109,11 +103,17 @@ void postPostProcess(genthread* l_thread)
 				color->b = (float)color->b - (float)(treecount) * 1.5;
 				if (color->b < 0) color->b = 0;
 				
-				setColor(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1), CL_GRASS, color);
+				setColor(flat, 
+					dx & (Sector::BLOCKS_XZ-1), 
+					dz & (Sector::BLOCKS_XZ-1), 
+					CL_GRASS, color);
 			}
 			
 			// set skylevel, groundlevel
-			setLevels(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1), skyLevel, groundLevel);
+			setLevels(flat, 
+				dx & (Sector::BLOCKS_XZ-1), 
+				dz & (Sector::BLOCKS_XZ-1), 
+				skyLevel, groundLevel);
 			
 		} // next z
 		

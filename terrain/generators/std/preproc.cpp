@@ -1,9 +1,11 @@
 #include "preproc.hpp"
 
-#include "blocks.hpp"
-#include "generator.h"
-#include "genthread.h"
-#include "biome/biome.hpp"
+#include <blocks.hpp>
+#include <generator.h>
+#include <genthread.h>
+#include <biome/biome.hpp>
+#include <random.hpp>
+#include <sectors.hpp>
 #include "objects/volumetrics.hpp"
 
 void preProcess(genthread* l_thread)
@@ -15,9 +17,10 @@ void preProcess(genthread* l_thread)
 	int wx = l_thread->x, wz = l_thread->z;
 	
 	// absolute block coords
-	int x = wx * BLOCKS_XZ, z = wz * BLOCKS_XZ;
+	int x = wx * Sector::BLOCKS_XZ;
+	int z = wz * Sector::BLOCKS_XZ;
 	
-	void* flat = getFlatland( wx, wz );
+	Flatland* flat = getFlatland( wx, wz );
 	int terrain;
 	
 	int dx, dy, dz;
@@ -26,12 +29,14 @@ void preProcess(genthread* l_thread)
 	int counter;
 	int air, treecount;
 	
-	for (dx = x; dx < x + BLOCKS_XZ; dx++)
+	for (dx = x; dx < x + Sector::BLOCKS_XZ; dx++)
 	{
-		for (dz = z; dz < z + BLOCKS_XZ; dz++)
+		for (dz = z; dz < z + Sector::BLOCKS_XZ; dz++)
 		{
 			// get terrain id
-			terrain = getTerrain(flat, dx & (BLOCKS_XZ-1), dz & (BLOCKS_XZ-1));
+			terrain = getTerrain(flat, 
+				dx & (Sector::BLOCKS_XZ-1), 
+				dz & (Sector::BLOCKS_XZ-1));
 			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock; // prevent null pointer in this case
@@ -62,7 +67,7 @@ void preProcess(genthread* l_thread)
 							// we hit soil, and at least some air
 							if (b->id == _GREENSOIL && air > 3)
 							{
-								f32_t rand = iRnd(dx, dy, dz);
+								f32_t rand = randf(dx, dy, dz);
 								// fill potential volume (above)
 								if (rand > 0.9)
 								{

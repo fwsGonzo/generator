@@ -3,6 +3,7 @@
 #include "generator.h"
 #include "genthread.h"
 #include "noise/simplex1234.h"
+#include "sectors.hpp"
 #include <math.h>
 
 // colors for 2D gradients
@@ -165,7 +166,7 @@ void biomeGenerator(genthread* l_thread)
 	int wz = l_thread->z;
 	
 	// 2d data container
-	void* flatland = getFlatland(wx, wz);
+	Flatland* flatland = getFlatland(wx, wz);
 	
 	vec3 p;
 	biome_t biome;
@@ -175,11 +176,13 @@ void biomeGenerator(genthread* l_thread)
 	int x, z;
 	int i, terrain, bigt = 0;
 	
-	for (x = 0; x < BLOCKS_XZ; x++)
-	for (z = 0; z < BLOCKS_XZ; z++)
+	static const int BlocksSquared = Sector::BLOCKS_XZ * Sector::BLOCKS_XZ;
+	
+	for (x = 0; x < Sector::BLOCKS_XZ; x++)
+	for (z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
-		p.x = l_thread->p.x + (f64_t) x / (BLOCKS_XZ * BLOCKS_XZ);
-		p.z = l_thread->p.z + (f64_t) z / (BLOCKS_XZ * BLOCKS_XZ);
+		p.x = l_thread->p.x + (f64_t) x / BlocksSquared;
+		p.z = l_thread->p.z + (f64_t) z / BlocksSquared;
 		
 		// don't scale p.x and p.z!!!!!!!!!!!!
 		biome = biomeGen(p.x, p.z);

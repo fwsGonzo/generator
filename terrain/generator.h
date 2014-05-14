@@ -1,61 +1,23 @@
-#ifndef GENERATOR_H
-#define GENERATOR_H
+#ifndef TG_GENERATOR_HPP
+#define TG_GENERATOR_HPP
 
-#define GEN_TRUE 1
-#define GEN_FALSE 0
-
-#define SECTORS_XZ 32
-#define SECTORS_Y 32
-#define WORLD_CENTER 134217728
-
-#define BLOCKS_XZ 16
-#define BLOCKS_Y 8
 #define GEN_FULLHEIGHT 255
 #define GEN_WORLDSCALE 0.00390625
 #define GEN_WATERLEVEL 0.25
 #define GEN_WATERBLOCKS 64
 
-#define PI 3.141592653589793
+#define PI  3.141592653589793
 #define PI2 6.283185307179586
 #define degToRad 0.0174532925199433
 #define radToDeg 57.29577951308232
 
-typedef int int32_t;
-typedef float f32_t;
-typedef double f64_t;
-typedef unsigned short block_t;
-
-typedef struct block {
-	unsigned short id      : 10;
-	unsigned short facing  :  2;
-	unsigned short special :  4;
-} block;
-
-// includes
-#include "vec.h"
-
 // console
-extern void (*logText)(char* text);
+extern void logText(const char* text);
 
 // world
-extern void (*generate)(void* genfunc, int use_border);
-extern void* (*getSector)(int x, int y, int z);
-extern int (*getWorldOffsetX)();
-extern int (*getWorldOffsetZ)();
-
-// interpolation
-extern f32_t (*cosintrp)(f32_t a, f32_t b, f32_t mixrate);
-extern f32_t (*iarray)(f32_t *weights, f32_t x, f32_t y);
-extern f32_t (*cosarray)(f32_t *weights, f32_t x, f32_t y);
-extern f32_t (*cubic)(f32_t *p, f32_t x);
-extern f32_t (*catmull_rom)(f32_t *p, f32_t x);
-extern f32_t (*bicubic)(f32_t *p, f32_t x, f32_t y);
-extern f32_t (*bicubic_catmull)(f32_t *p, f32_t x, f32_t y);
-extern f32_t (*trilin)(f32_t *p, f32_t x, f32_t y, f32_t z);
-extern f64_t (*tri64)(f64_t *p, f64_t x, f64_t y, f64_t z);
-extern f32_t (*costri)(f32_t *p, f32_t x, f32_t y, f32_t z);
-extern f64_t (*costri64)(f64_t *p, f64_t x, f64_t y, f64_t z);
-extern f32_t (*tricubic)(f32_t *p, f32_t x, f32_t y, f32_t z);
+struct genthread;
+typedef void (*genfunc_t)(genthread* thread);
+extern void generate(genfunc_t genfunc, bool use_border);
 
 // curves
 #define cosp(f)    ((1.0 - cos(f * PI)) * 0.5)
@@ -69,17 +31,17 @@ extern f32_t (*tricubic)(f32_t *p, f32_t x, f32_t y, f32_t z);
 #define FASTFLOOR(x) ( ((x)>0) ? ((int)x) : (((int)x)-1) )
 
 // blocks
-extern void* (*getSectorBlock)(void* sector);
-extern void* (*createSectorBlock)(void* sector);
-extern void (*setsimple)(void* sector, int x, int y, int z, block_t id);
-extern void (*setb)(int x, int y, int z, block_t id, int overwrite, int facing);
-extern void (*setbl)(int x, int y, int z, block* bl, int overwrite);
-extern void (*setblock)(void* sector, int x, int y, int z, block_t id, int overwrite, int facing);
-extern block* (*getb)(int x, int y, int z);
-extern int (*wrapb)(int x, int y, int z);   // returns GEN_FALSE if blocks are out of 'miniworld' bounds
+class Sector;
+#include "blocks.hpp"
+extern void setsimple(Sector* sector, int x, int y, int z, block_t id);
+extern void setb(int x, int y, int z, block_t id, int overwrite, int facing);
+extern void setb(int x, int y, int z, block_t block, bool overwrite);
+extern void setb(int x, int y, int z, block& block, bool overwrite);
+extern void setb(Sector* sector, int x, int y, int z, block_t id, int overwrite, int facing);
+extern block* getb(int x, int y, int z);
+extern bool wrapb(int x, int y, int z);  // returns false if blocks are out of 'miniworld' bounds
 
 // biomes / flatland data
-
 typedef struct cl_rgb {
 	int r, g, b;
 } cl_rgb;
@@ -88,21 +50,13 @@ typedef struct cl_rgba {
 	int r, g, b, a;
 } cl_rgba;
 
-extern void* (*getFlatland)(int x, int z);
-extern void (*setTerrain)(void* fland, int bx, int bz, int value);
-extern int  (*getTerrain)(void* fland, int bx, int bz);
-extern void (*setColor)(void* fland, int bx, int bz, int clid, cl_rgb* cl);
-extern void (*setColorExt)(void* fland, int bx, int bz, int clid, cl_rgba* cl);
-extern cl_rgb* (*getColor)(void* fland, int bx, int bz, int clid);
-extern void (*setLevels)(void* fland, int bx, int bz, int skyLevel, int groundLevel);
-
-// random functions
-extern f32_t (*iRnd)(int x, int y, int z);
-extern f32_t (*iRnd2)(void* sector, int bx, int by, int bz);
-extern f32_t (*iRnd1)(void* sector, int offset);
-
-// terrain value noise functions
-extern f32_t (*bigRnd)(int wx, int wy, int size);
-extern f32_t (*bigRndCat)(int wx, int wy, int size);
+class Flatland;
+extern Flatland* getFlatland(int x, int z);
+extern void setTerrain(Flatland* fland, int bx, int bz, int value);
+extern int  getTerrain(Flatland* fland, int bx, int bz);
+extern void setColor(Flatland* fland, int bx, int bz, int clid, cl_rgb* cl);
+extern void setColorExt(Flatland* fland, int bx, int bz, int clid, cl_rgba* cl);
+extern cl_rgb* getColor(Flatland* fland, int bx, int bz, int clid);
+extern void setLevels(Flatland* fland, int bx, int bz, int skyLevel, int groundLevel);
 
 #endif

@@ -9,24 +9,15 @@
 #include "flatgen.hpp"
 #include "flatpp.hpp"
 
-#define GAPIDECL  __declspec(dllexport) __stdcall
-#define GAPI  __stdcall
-
-extern "C"
-{
-
-GAPIDECL void flatGen();
-GAPIDECL void flatPP();
-
 void flatGen()
 {
 	logText("-- flatGen --");
 	
 	// generate biomes
-	generate(&biomeGenerator, GEN_TRUE);
+	generate(&biomeGenerator, true);
 	
 	// generate land
-	generate(&flatTerrain, GEN_FALSE);
+	generate(&flatTerrain, false);
 	
 	logText("-- done --");
 	
@@ -37,11 +28,9 @@ void flatPP()
 	logText("-- flatPP --");
 	
 	// post-processing
-	generate(&flatPostProcess, GEN_FALSE);
+	generate(&flatPostProcess, false);
 	// post-post-processing :)
-	generate(&postPostProcess, GEN_FALSE);
+	generate(&postPostProcess, false);
 	
 	logText("-- done --");
-}
-
 }

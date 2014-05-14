@@ -2,8 +2,9 @@
 
 #include "blocks.hpp"
 #include "generator.h"
+#include "random.hpp"
 
-int discover(int x, int y, int z, int id)
+bool discover(int x, int y, int z, int id)
 {
 	const int DISCOVERIES = 8;
 	const int LEVELS = 4;
@@ -12,17 +13,17 @@ int discover(int x, int y, int z, int id)
 	
 	for (i = 0; i < DISCOVERIES; i++)
 	{
-		dx = x + iRnd(x + 14, y + i * 13, z + 13) * 16.0 - 8.0;
-		dz = z + iRnd(x + 17, y - i *  7, z + 19) * 16.0 - 8.0;
+		dx = x + randf(x + 14, y + i * 13, z + 13) * 16.0 - 8.0;
+		dz = z + randf(x + 17, y - i *  7, z + 19) * 16.0 - 8.0;
 		
 		for (j = 1; j < LEVELS; j++)
 		{
 			// level j
 			b = getb(dx, y - j, dz);
-			if (b) if (b->id == id) return GEN_TRUE;
+			if (b) if (b->id == id) return true;
 		}
 	}
-	return GEN_FALSE;
+	return false;
 }
 
 
@@ -75,7 +76,7 @@ void volumetricFillDown(int x, int y, int z, int id, int depth, int travel)
 	volumetricFillDown(x, dy, z-1, id, depth, travel);
 }
 
-int volumetricFill(int x, int y, int z, int id, int volsize)
+bool volumetricFill(int x, int y, int z, int id, int volsize)
 {
 	int VOLRAD = volsize / 2;
 	const int VOLDEPTH = 64, VOLTRAVEL = 20;
@@ -89,7 +90,7 @@ int volumetricFill(int x, int y, int z, int id, int volsize)
 	{
 		table[bx][bz] = volumetricDepth(x + bx - VOLRAD, y, z + bz - VOLRAD, VOLDEPTH);
 		if (bx == 0 || bz == 0 || bx == volsize-1 || bz == volsize-1)
-			if (table[bx][bz] != 0) return GEN_FALSE;
+			if (table[bx][bz] != 0) return false;
 	}
 	
 	// if we get here, we have a 2D volume (with possible depth exits)
@@ -101,5 +102,5 @@ int volumetricFill(int x, int y, int z, int id, int volsize)
 			volumetricFillDown(x + bx - VOLRAD, y, z + bz - VOLRAD, id, VOLDEPTH, VOLTRAVEL);
 	}
 	
-	return GEN_TRUE;
+	return true;
 }

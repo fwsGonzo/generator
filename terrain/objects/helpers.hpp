@@ -6,7 +6,7 @@ typedef unsigned short block_t;
 extern int ofacing(int dx, int dz);
 extern int ofacingNeg(int dx, int dz);
 
-extern int coretest(int x, int y, int z, int rad);
+extern bool coretest(int x, int y, int z, int rad);
 extern void downSpider(int x, int y, int z, block_t id, int tries);
 
 extern void ocircleXZ(int x, int y, int z, float radius, block_t id);

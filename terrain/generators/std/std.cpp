@@ -1,58 +1,46 @@
 /*
 	Standard generator
 */
-#include "../../generator.h"
-#include "../../biome/biome.hpp"
+#include <generator.h>
+#include <biome/biome.hpp>
 #include "generator.hpp"
 #include "preproc.hpp"
 #include "process.hpp"
 #include "postproc.hpp"
 
-#define GAPIDECL  __declspec(dllexport) __stdcall
-#define GAPI  __stdcall
-
-extern "C"
-{
-
-GAPIDECL void testGen();
-GAPIDECL void finalpassBiome();
-GAPIDECL void testPP();
-
-GAPI void testGen()
+void testGen()
 {
 	logText("-- stdGen 2D --");
 	
 	// generate biomes
-	generate((void*) &biomeGenerator, GEN_TRUE);
+	generate(biomeGenerator, true);
 	
 	logText("-- stdGen 3D --");
 	
 	// generate land
-	generate((void*) &terrainGenerator, GEN_FALSE);
+	generate(terrainGenerator, false);
 	
 	logText("-- done --");
 }
 
-GAPI void finalpassBiome()
+void finalpassBiome()
 {
 	// generate biomes
-	generate((void*) &biomeGenerator, GEN_FALSE);
+	generate(biomeGenerator, false);
 	// post-processing (after objects)
-	generate((void*) &postPostProcess, GEN_FALSE);
+	generate(postPostProcess, false);
 }
 
-GAPI void testPP()
+void testPP()
 {
 	logText("-- stdPP --");
 	
 	// pre-processing
-	generate((void*) &preProcess, GEN_FALSE);
+	generate(preProcess, false);
 	// post-processing
-	generate((void*) &areaPostProcess, GEN_FALSE);
+	generate(areaPostProcess, false);
 	// post-processing (after objects)
-	generate((void*) &postPostProcess, GEN_FALSE);
+	generate(postPostProcess, false);
 	
 	logText("-- done --");
-}
-
 }

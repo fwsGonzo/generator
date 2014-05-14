@@ -4,6 +4,7 @@
 #include "generator.h"
 #include "vec.h"
 #include "helpers.hpp"
+#include "random.hpp"
 #include <cstdlib>
 #include <math.h>
 
@@ -18,7 +19,7 @@ void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top
 	float rad, fdx, fdy, fdz;
 	
 	// block with special from 0 to 15
-	block mat = (block) { 0, 0, (block_t)(iRnd(x, y+11, z) * 16) };
+	block mat = (block) { 0, 0, (block_t)(randf(x, y+11, z) * 16) };
 	
 	int dx, dy, dz;
 	
@@ -38,7 +39,7 @@ void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top
 					if (rad >= radius * 0.95)
 					{
 						mat.id = mat_top;
-						if ((int)(iRnd(x+dx, y+dy, z+dz) * 32.0) == 0) mat.id = mat_top2;
+						if ((int)(randf(x+dx, y+dy, z+dz) * 32.0) == 0) mat.id = mat_top2;
 					}
 					else
 					{
@@ -47,7 +48,7 @@ void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top
 					
 					if (rad > hoodradix)
 					{
-						setbl(x+dx, y - (radius * (1.0 - stretch_y)) + dy * stretch_y, z+dz, &mat, 1);
+						setb(x+dx, y - (radius * (1.0 - stretch_y)) + dy * stretch_y, z+dz, mat, true);
 					}
 					
 				} // rad <= radius
@@ -60,14 +61,14 @@ void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top
 
 void omushWildShroom(int x, int y, int z, int height)
 {
-	float lowrad = iRnd(x, z, y) * 4 + 8;
+	float lowrad = randf(x, z, y) * 4 + 8;
 	float toprad = lowrad * 0.4;
 	float currad = 0;
 	
 	const float jitter = 2.0;
 	const float interpolback = 0.05;
-	float jitter_x = (iRnd(x+1, y, z-1) - 0.5) * jitter;
-	float jitter_z = (iRnd(x-1, y, z+1) - 0.5) * jitter;
+	float jitter_x = (randf(x+1, y, z-1) - 0.5) * jitter;
+	float jitter_z = (randf(x-1, y, z+1) - 0.5) * jitter;
 	
 	float dx = x, dz = z;
 	int dy;
@@ -103,8 +104,8 @@ void omushStrangeShroom(int x, int y, int z, int height)
 	
 	const float jitter = 1.0;
 	const float interpolback = 0.05;
-	float jitter_x = iRnd(x+3, y+5, z-4) * jitter - jitter * 0.5;
-	float jitter_z = iRnd(x-5, y-3, z+7) * jitter - jitter * 0.5;
+	float jitter_x = randf(x+3, y+5, z-4) * jitter - jitter * 0.5;
+	float jitter_z = randf(x-5, y-3, z+7) * jitter - jitter * 0.5;
 	
 	float dx = x, dz = z;
 	int dy;
@@ -134,7 +135,7 @@ void omushStrangeShroom(int x, int y, int z, int height)
 	
 	const int speckle_chance = 8;
 	
-	block mat = (block) { 0, 0, (block_t)(iRnd(x, y+13, z) * 16) };
+	block mat = (block) { 0, 0, (block_t)(randf(x, y+13, z) * 16) };
 	
 	const float shift_strength       = 3.0;
 	const float shift_top_slope      = 0.5;
@@ -180,7 +181,7 @@ void omushStrangeShroom(int x, int y, int z, int height)
 						{	// undertop
 							mat.id = _GIANTSHROOMUNDERTOP;
 						}
-						else if ( (int)(iRnd(dx+hx, y+dy, dz+hz) * speckle_chance) == 0)
+						else if ( (int)(randf(dx+hx, y+dy, dz+hz) * speckle_chance) == 0)
 						{	// specled top
 							mat.id = _GIANTSHROOMTOPSPECLE;
 						}
@@ -194,7 +195,7 @@ void omushStrangeShroom(int x, int y, int z, int height)
 						mat.id = _GIANTSHROOMUNDERTOP;
 					}
 					
-					setbl((int)dx + hx, y+dy + height, (int)dz + hz, &mat, 1);
+					setb((int)dx + hx, y+dy + height, (int)dz + hz, mat, true);
 					
 				} // inside bell radius
 				
