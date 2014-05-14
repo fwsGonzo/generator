@@ -22,9 +22,9 @@ public:
 		short blocks;
 		short torchlight;
 		unsigned char hardsolid;
-		unsigned char skylevel;
-		unsigned char special;
 		unsigned char unused1;
+		unsigned char unused2;
+		unsigned char unused3;
 	} sectorblock_t;
 	#pragma pack(pop)
 	
@@ -38,6 +38,10 @@ public:
 	inline bool hasBlocks() const
 	{
 		return blocks != nullptr;
+	}
+	inline block_t* getBlocks()
+	{
+		return blocks->b[0][0];
 	}
 	inline block_t& operator() (int bx, int by, int bz)
 	{
@@ -58,6 +62,8 @@ private:
 	wcoord_t wy;
 	wcoord_t wz;
 	sectorblock_t* blocks;
+	
+	friend class Sectors;
 };
 
 class Sectors
@@ -72,6 +78,7 @@ public:
 	
 	~Sectors() { delete[] sectors; }
 	void init(int axis_size);
+	void reset();
 	
 	// world offsets
 	wcoord_t getWorldOffsetX() const { return worldOffsetX; }
@@ -98,6 +105,7 @@ extern Sectors sectors;
 
 class Flatland
 {
+public:
 	static const int TERRAIN_COLORS = 8;
 	typedef unsigned int color_t;
 	
@@ -110,6 +118,12 @@ class Flatland
 		unsigned char unused1;
 	} flatdata_t;
 	
+	flatdata_t& operator() (int x, int z)
+	{
+		return data[x][z];
+	}
+	
+private:
 	flatdata_t data[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
 };
 

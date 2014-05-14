@@ -132,7 +132,7 @@ static unsigned char simplex[64][4] = {
  * and gradients-dot-residualvectors in 2D to 4D.
  */
 
-static float grad1( int hash, float *gx ) {
+static void grad1( int hash, float *gx ) {
     int h = hash & 15;
     *gx = 1.0f + (h & 7);   // Gradient value is one of 1.0, 2.0, ..., 8.0
     if (h&8) *gx = - *gx;   // Make half of the gradients negative
@@ -533,7 +533,7 @@ float sdnoise4( float x, float y, float z, float w,
     // To find out which of the 24 possible simplices we're in, we need to
     // determine the magnitude ordering of x0, y0, z0 and w0.
     // The method below is a reasonable way of finding the ordering of x,y,z,w
-    // and then find the correct traversal order for the simplex we’re in.
+    // and then find the correct traversal order for the simplex weÂ’re in.
     // First, six pair-wise comparisons are performed between each possible pair
     // of the four coordinates, and then the results are used to add up binary
     // bits for an integer index into a precomputed lookup table, simplex[].
