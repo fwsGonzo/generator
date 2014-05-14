@@ -30,7 +30,7 @@ void flatPostProcess(genthread* l_thread)
 	// world coordinates
 	int wx = l_thread->x, wz = l_thread->z;
 	
-	Flatland* flat = getFlatland( wx, wz );
+	Flatland& flat = flatlands(wx, wz);
 	
 	// absolute block coords
 	int x = wx * Sector::BLOCKS_XZ;
@@ -54,9 +54,7 @@ void flatPostProcess(genthread* l_thread)
 			p.z = l_thread->p.z + (double)(dz - z) / (double)BlocksSquared;
 			
 			// set dummy terrain
-			setTerrain(flat, 
-				dx & (Sector::BLOCKS_XZ-1), 
-				dz & (Sector::BLOCKS_XZ-1), 4);
+			flat(dx & (Sector::BLOCKS_XZ-1), dz & (Sector::BLOCKS_XZ-1)).terrain = 4;
 			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock;

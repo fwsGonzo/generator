@@ -51,7 +51,7 @@ void areaPostProcess(genthread* l_thread)
 	int x = wx * Sector::BLOCKS_XZ;
 	int z = wz * Sector::BLOCKS_XZ;
 	
-	Flatland* flat = getFlatland( wx, wz );
+	Flatland& flat = flatlands(wx, wz);
 	int terrain;
 	
 	vec3 p;       // world coordinates for noise
@@ -81,9 +81,8 @@ void areaPostProcess(genthread* l_thread)
 							   snoise2(p.x * 5.0, p.z * 5.0) * 0.2;
 			
 			// get terrain id
-			terrain = getTerrain(flat, 
-				dx & (Sector::BLOCKS_XZ-1), 
-				dz & (Sector::BLOCKS_XZ-1));
+			terrain = flat(dx & (Sector::BLOCKS_XZ-1), 
+				dz & (Sector::BLOCKS_XZ-1)).terrain;
 			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock; // prevent null pointer in this case
@@ -218,7 +217,7 @@ void areaPostProcess(genthread* l_thread)
 								{
 									if (snoise2(p.x * 1.8, p.z * 1.8) > 0.25)
 									{
-										int height = 8 + randf(dx, dy+1, dz) * 12;
+										//int height = 8 + randf(dx, dy+1, dz) * 12;
 										
 										// top cap
 										//if (dy + height < 200)

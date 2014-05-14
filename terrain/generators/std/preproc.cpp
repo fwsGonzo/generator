@@ -14,13 +14,14 @@ void preProcess(genthread* l_thread)
 	const int maxy = GEN_FULLHEIGHT;
 	
 	// world coordinates
-	int wx = l_thread->x, wz = l_thread->z;
+	int wx = l_thread->x;
+	int wz = l_thread->z;
 	
 	// absolute block coords
 	int x = wx * Sector::BLOCKS_XZ;
 	int z = wz * Sector::BLOCKS_XZ;
 	
-	Flatland* flat = getFlatland( wx, wz );
+	Flatland& flat = flatlands(wx, wz);
 	int terrain;
 	
 	int dx, dy, dz;
@@ -34,9 +35,8 @@ void preProcess(genthread* l_thread)
 		for (dz = z; dz < z + Sector::BLOCKS_XZ; dz++)
 		{
 			// get terrain id
-			terrain = getTerrain(flat, 
-				dx & (Sector::BLOCKS_XZ-1), 
-				dz & (Sector::BLOCKS_XZ-1));
+			terrain = flat(dx & (Sector::BLOCKS_XZ-1), 
+					dz & (Sector::BLOCKS_XZ-1)).terrain;
 			
 			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock; // prevent null pointer in this case

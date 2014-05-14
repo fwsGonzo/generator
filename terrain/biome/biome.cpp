@@ -166,7 +166,7 @@ void biomeGenerator(genthread* l_thread)
 	int wz = l_thread->z;
 	
 	// 2d data container
-	Flatland* flatland = getFlatland(wx, wz);
+	Flatland& flatland = flatlands(wx, wz);
 	
 	vec3 p;
 	biome_t biome;
@@ -231,7 +231,7 @@ void biomeGenerator(genthread* l_thread)
 		}
 		
 		// set terrain-id based on the strongest weight
-		setTerrain(flatland, x, z, bigt);
+		flatland(x, z).terrain = bigt;
 		
 		// if we encountered snow weights, we ignore them and add the biggest terrain instead
 		if (determinator != 0.0)
@@ -279,7 +279,7 @@ void biomeGenerator(genthread* l_thread)
 		
 		// set vertex colors all in one swoooop
 		for (i = 0; i < CL_MAX; i++)
-			setColor(flatland, x, z, i, &biomecl[i] );
+			flatland(x, z).color[i] = toColor(biomecl[i]);
 		
 	}
 	

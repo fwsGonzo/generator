@@ -16,7 +16,7 @@ public:
 	static const int MAX_HARDSOLID = 63;
 	
 	#pragma pack(push, 2)
-	typedef struct
+	typedef struct sectorblock_t
 	{
 		block_t b[BLOCKS_XZ][BLOCKS_XZ][BLOCKS_Y];
 		short blocks;
@@ -75,6 +75,7 @@ public:
 	static const int SECTORS_Y  = 32;
 	static const int BORDER     = 2;
 	static const int WATERLEVEL = 8; // water sectorlevel
+	static const int TOP_BLOCK  = SECTORS_Y * Sector::BLOCKS_Y - 1;
 	
 	~Sectors() { delete[] sectors; }
 	void init(int axis_size);
@@ -109,16 +110,16 @@ public:
 	static const int TERRAIN_COLORS = 8;
 	typedef unsigned int color_t;
 	
-	typedef struct
+	typedef struct flatdata_t
 	{
-		color_t flatColor[TERRAIN_COLORS];
+		color_t color[TERRAIN_COLORS];
 		unsigned char terrain;
 		unsigned char skylevel;
 		unsigned char groundlevel;
 		unsigned char unused1;
 	} flatdata_t;
 	
-	flatdata_t& operator() (int x, int z)
+	inline flatdata_t& operator() (int x, int z)
 	{
 		return data[x][z];
 	}

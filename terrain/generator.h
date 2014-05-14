@@ -44,19 +44,27 @@ extern bool wrapb(int x, int y, int z);  // returns false if blocks are out of '
 // biomes / flatland data
 typedef struct cl_rgb {
 	int r, g, b;
+	
+	cl_rgb() {}
+	cl_rgb(int R, int G, int B)
+		: r(R), g(G), b(B) {}
+	
 } cl_rgb;
 
 typedef struct cl_rgba {
 	int r, g, b, a;
 } cl_rgba;
 
-class Flatland;
-extern Flatland* getFlatland(int x, int z);
-extern void setTerrain(Flatland* fland, int bx, int bz, int value);
-extern int  getTerrain(Flatland* fland, int bx, int bz);
-extern void setColor(Flatland* fland, int bx, int bz, int clid, cl_rgb* cl);
-extern void setColorExt(Flatland* fland, int bx, int bz, int clid, cl_rgba* cl);
-extern cl_rgb* getColor(Flatland* fland, int bx, int bz, int clid);
-extern void setLevels(Flatland* fland, int bx, int bz, int skyLevel, int groundLevel);
+inline unsigned int toColor(const cl_rgb& col)
+{
+	return (col.r << 24) + (col.g << 16) + (col.b << 8);
+}
+inline cl_rgb toColor(unsigned int col)
+{
+	return cl_rgb(
+		 col		& 255,
+		(col >>  8) & 255,
+		(col >> 16) & 255);
+}
 
 #endif

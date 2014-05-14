@@ -18,7 +18,7 @@ void postPostProcess(genthread* l_thread)
 	int x = wx * Sector::BLOCKS_XZ;
 	int z = wz * Sector::BLOCKS_XZ;
 	
-	Flatland* flat = getFlatland( wx, wz );
+	Flatland& flat = flatlands(wx, wz);
 	
 	int dx, dy, dz;
 	block *lastb;
@@ -87,33 +87,29 @@ void postPostProcess(genthread* l_thread)
 				
 			} // y
 			
+			int ddx = dx & (Sector::BLOCKS_XZ-1);
+			int ddz = dz & (Sector::BLOCKS_XZ-1);
+			
 			if (treecount)
 			{
 				// get grass color
-				cl_rgb* color = getColor(flat, 
-					dx & (Sector::BLOCKS_XZ-1), 
-					dz & (Sector::BLOCKS_XZ-1), 
-					CL_GRASS);
+				cl_rgb color = toColor(
+					flat(ddx, ddz).color[CL_GRASS] );
 				
 				if (treecount > 16) treecount = 16;
 				
 				// reduce green component
-				color->g = (float)color->g - (float)(treecount) * 2.0;
-				if (color->g < 0) color->g = 0;
-				color->b = (float)color->b - (float)(treecount) * 1.5;
-				if (color->b < 0) color->b = 0;
+				color.g = (float)color.g - (float)(treecount) * 2.0;
+				if (color.g < 0) color.g = 0;
+				color.b = (float)color.b - (float)(treecount) * 1.5;
+				if (color.b < 0) color.b = 0;
 				
-				setColor(flat, 
-					dx & (Sector::BLOCKS_XZ-1), 
-					dz & (Sector::BLOCKS_XZ-1), 
-					CL_GRASS, color);
+				flat(ddx, ddz).color[CL_GRASS] = toColor(color); 
 			}
 			
 			// set skylevel, groundlevel
-			setLevels(flat, 
-				dx & (Sector::BLOCKS_XZ-1), 
-				dz & (Sector::BLOCKS_XZ-1), 
-				skyLevel, groundLevel);
+			flat(ddx, ddz).groundlevel = groundLevel;
+			flat(ddx, ddz).skylevel = skyLevel;
 			
 		} // next z
 		
