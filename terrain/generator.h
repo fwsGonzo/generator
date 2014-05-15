@@ -30,17 +30,6 @@ extern void generate(genfunc_t genfunc, bool use_border);
 #define mix(a, b, m) ((1.0 - m) * (a) + (m) * (b))
 #define FASTFLOOR(x) ( ((x)>0) ? ((int)x) : (((int)x)-1) )
 
-// blocks
-class Sector;
-#include "blocks.hpp"
-extern void setsimple(Sector* sector, int x, int y, int z, block_t id);
-extern void setb(int x, int y, int z, block_t id, int overwrite, int facing);
-extern void setb(int x, int y, int z, block_t block, bool overwrite);
-extern void setb(int x, int y, int z, block& block, bool overwrite);
-extern void setb(Sector* sector, int x, int y, int z, block_t id, int overwrite, int facing);
-extern block* getb(int x, int y, int z);
-extern bool wrapb(int x, int y, int z);  // returns false if blocks are out of 'miniworld' bounds
-
 // biomes / flatland data
 typedef struct cl_rgb {
 	int r, g, b;

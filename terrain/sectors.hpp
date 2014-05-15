@@ -9,9 +9,9 @@ class Sector
 {
 public:
 	static const int BLOCKS_XZ = 16;
-	static const int BLOCKS_XZ_SHL = 4;
+	static const int BLOCKS_XZ_SH = 4;
 	static const int BLOCKS_Y = 8;
-	static const int BLOCKS_Y_SHL = 3;
+	static const int BLOCKS_Y_SH = 3;
 	
 	static const int MAX_HARDSOLID = 63;
 	

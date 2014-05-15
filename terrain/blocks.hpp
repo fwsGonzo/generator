@@ -253,4 +253,12 @@ inline bool blockTransparent(block_t id)
 	return false;
 }
 
+class Sector;
+extern void setb(int x, int y, int z, block_t id, block_t facing, bool overwrite = true);
+extern void setb(int x, int y, int z, block_t block, bool overwrite = true);
+extern void setb(int x, int y, int z, block& block, bool overwrite = true);
+//extern void setb(Sector* sector, int x, int y, int z, block_t id, int overwrite, int facing);
+extern block* getb(int x, int y, int z);
+extern bool wrapb(int x, int y, int z);  // returns false if blocks are out of 'miniworld' bounds
+
 #endif
