@@ -1,7 +1,7 @@
 #ifndef FLATGEN_HPP
 #define FLATGEN_HPP
 
-struct genthread;
-extern void flatTerrain(genthread* l_thread);
+struct genthread_t;
+extern void flatTerrain(genthread_t* l_thread);
 
 #endif

@@ -15,9 +15,27 @@
 extern void logText(const char* text);
 
 // world
-struct genthread;
-typedef void (*genfunc_t)(genthread* thread);
-extern void generate(genfunc_t genfunc, bool use_border);
+struct genthread_t;
+
+namespace ThreadPool
+{
+	class TPool;
+}
+
+class Generator
+{
+public:
+	Generator(int threads);
+	~Generator();
+	
+	typedef void (*genfunc_t)(genthread_t* thread);
+	
+	void generate(genfunc_t genfunc, bool border);
+	
+private:
+	ThreadPool::TPool* tpool;
+};
+
 
 // curves
 #define cosp(f)    ((1.0 - cos(f * PI)) * 0.5)

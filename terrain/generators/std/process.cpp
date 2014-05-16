@@ -38,7 +38,7 @@ f32_t   depo_depth[NUM_ORES] = {  1.0,   0.8,   0.4,     0.2,       0.2,        
 void pp_depositOre(int ore, int* orecount, int x, int y, int z);
 
 
-void areaPostProcess(genthread* l_thread)
+void areaPostProcess(genthread_t* l_thread)
 {
 	const int miny = 0;
 	const int maxy = GEN_FULLHEIGHT;

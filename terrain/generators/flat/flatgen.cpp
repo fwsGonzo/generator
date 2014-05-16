@@ -11,7 +11,7 @@
 
 // flat terrain generation function
 
-void flatTerrain(genthread* l_thread)
+void flatTerrain(genthread_t* l_thread)
 {
 	Sector* s = nullptr;
 	int wx = l_thread->x;
@@ -57,9 +57,11 @@ void flatTerrain(genthread* l_thread)
 			if (p.y < h) id = _GREENSOIL;
 			
 			// set directly
+			if (s->hasBlocks() == false)
+			{
+				s->createBlocks();
+			}
 			s[0](x, by, z) = id;
-			// if the block is not _AIR (0), set the block
-			//if (id) setsimple(s, x, by, z, id);
 			
 		} // x/z
 		

@@ -1,8 +1,7 @@
 #ifndef POSTPROC_HPP
 #define POSTPROC_HPP
 
-struct genthread;
-
-extern void postProcess(genthread* l_thread);
+struct genthread_t;
+extern void postProcess(genthread_t* l_thread);
 
 #endif

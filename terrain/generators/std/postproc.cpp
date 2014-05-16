@@ -6,7 +6,7 @@
 #include <genthread.h>
 #include <sectors.hpp>
 
-void postPostProcess(genthread* l_thread)
+void postPostProcess(genthread_t* l_thread)
 {
 	const int miny = 0;
 	const int maxy = GEN_FULLHEIGHT;

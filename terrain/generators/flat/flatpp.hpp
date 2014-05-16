@@ -1,9 +1,8 @@
 #ifndef FLATPP_HPP
 #define FLATPP_HPP
 
-struct genthread;
-
-extern void flatPostProcess(genthread* l_thread);
-extern void postPostProcess(genthread* l_thread);
+struct genthread_t;
+extern void flatPostProcess(genthread_t* l_thread);
+extern void postPostProcess(genthread_t* l_thread);
 
 #endif

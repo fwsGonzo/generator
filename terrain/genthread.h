@@ -3,10 +3,10 @@
 
 #include "vec.h"
 
-typedef struct genthread
+typedef struct genthread_t
 {
 	int x, z;
 	vec3 p;
-} genthread;
+} genthread_t;
 
 #endif

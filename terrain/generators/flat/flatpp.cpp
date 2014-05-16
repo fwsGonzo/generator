@@ -1,14 +1,14 @@
 #include "flatpp.hpp"
 
-#include "blocks.hpp"
-#include "generator.h"
-#include "genthread.h"
+#include <blocks.hpp>
+#include <generator.h>
+#include <genthread.h>
 #include "noise/simplex1234.h"
-#include "random.hpp"
-#include "sectors.hpp"
+#include <random.hpp>
+#include <sectors.hpp>
 
-#include "objects/house.hpp"
-#include "objects/trees.hpp"
+#include <objects/house.hpp>
+#include <objects/trees.hpp>
 
 block_t flat_grass[6] = { _GRASS_LONG, _GRASS_SHORT, _FLOWERREDMAG, _FLOWERROSE, _FLOWERYELLOW, _FLOWERRED };
 
@@ -22,7 +22,7 @@ block_t flat_grass[6] = { _GRASS_LONG, _GRASS_SHORT, _FLOWERREDMAG, _FLOWERROSE,
 
 // simple post-processor for flat worlds
 
-void flatPostProcess(genthread* l_thread)
+void flatPostProcess(genthread_t* l_thread)
 {	
 	const int miny = 0;
 	const int maxy = GEN_FULLHEIGHT;
@@ -160,4 +160,4 @@ void flatPostProcess(genthread* l_thread)
 	} // next x
 	
 	
-} // areaPostProcess()
+} // flatPostProcess()

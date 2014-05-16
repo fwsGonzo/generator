@@ -51,11 +51,7 @@ public:
 	// operations
 	void finish();
 	void clear();
-	inline void createBlocks()
-	{
-		blocks = new sectorblock_t;
-		blocks->blocks = 0;
-	}
+	void createBlocks();
 	
 private:
 	wcoord_t wx;

@@ -1,7 +1,7 @@
 #include "biome.hpp"
 
-#include "generator.h"
-#include "genthread.h"
+#include <generator.h>
+#include <genthread.h>
 #include "noise/simplex1234.h"
 #include "sectors.hpp"
 #include <math.h>
@@ -160,7 +160,7 @@ cl_rgb getGradientGrass(f32_t v, f32_t w)
 	return mixColor( &cl[0], &cl[1], wfrac );
 }
 
-void biomeGenerator(genthread* l_thread)
+void biomeGenerator(genthread_t* l_thread)
 {
 	int wx = l_thread->x;
 	int wz = l_thread->z;

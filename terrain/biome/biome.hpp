@@ -2,8 +2,8 @@
 #define BIOME_HPP
 	
 	// prototypes
-	struct genthread;
-	extern void biomeGenerator(genthread* l_thread);
+	struct genthread_t;
+	extern void biomeGenerator(genthread_t* l_thread);
 	
 	typedef struct biome_t
 	{

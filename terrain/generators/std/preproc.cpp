@@ -8,7 +8,7 @@
 #include <sectors.hpp>
 #include "objects/volumetrics.hpp"
 
-void preProcess(genthread* l_thread)
+void preProcess(genthread_t* l_thread)
 {
 	const int miny = 0;
 	const int maxy = GEN_FULLHEIGHT;

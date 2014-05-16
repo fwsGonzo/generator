@@ -6,7 +6,7 @@
 # -Ofast -mfpmath=both -march=native -flto
 # -Ofast -mfpmath=both -march=native
 # -g -Og
-BUILDOPT = -Ofast -mfpmath=both -march=native
+BUILDOPT = -ggdb3 #-Ofast -mfpmath=both -march=native
 # output file
 OUTPUT   = ./generator
 
@@ -27,7 +27,7 @@ CC = g++ $(BUILDOPT) -std=c++11
 # compiler flags
 CCFLAGS = -c -Wall -Wextra -pedantic -Iinc -Iterrain
 # linker flags
-LFLAGS  = -Llib -llibrary -llzo2 -Wl,-rpath,../lib
+LFLAGS  = -Llib -llibrary -lpthread -llzo2 -Wl,-rpath,../lib
 ifeq ($(OS),Windows_NT)
 	LFLAGS  = -Llib -static -llibrary -lpthread -llzo2
 endif

@@ -1,17 +1,7 @@
 #ifndef GENERATOR_HPP
 #define GENERATOR_HPP
 
-namespace generator
-{
+#include <generator.h>
 
-class Generator
-{
-public:
-	Generator();
-	~Generator();
-
-};
-
-}
 
 #endif // GENERATOR_HPP

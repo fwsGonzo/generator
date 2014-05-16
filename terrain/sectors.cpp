@@ -33,6 +33,12 @@ void Sectors::reset()
 	}
 }
 
+void Sector::createBlocks()
+{
+	blocks = new sectorblock_t();
+	blocks->blocks = 0;
+}
+
 void Sector::finish()
 {
 	if (blocks == nullptr) return;

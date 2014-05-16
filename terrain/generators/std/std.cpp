@@ -8,39 +8,39 @@
 #include "process.hpp"
 #include "postproc.hpp"
 
-void testGen()
+void testGen(Generator& generator)
 {
 	logText("-- stdGen 2D --");
 	
 	// generate biomes
-	generate(biomeGenerator, true);
+	generator.generate(biomeGenerator, true);
 	
 	logText("-- stdGen 3D --");
 	
 	// generate land
-	generate(terrainGenerator, false);
+	generator.generate(terrainGenerator, false);
 	
 	logText("-- done --");
 }
 
-void finalpassBiome()
+void finalpassBiome(Generator& generator)
 {
 	// generate biomes
-	generate(biomeGenerator, false);
+	generator.generate(biomeGenerator, false);
 	// post-processing (after objects)
-	generate(postPostProcess, false);
+	generator.generate(postPostProcess, false);
 }
 
-void testPP()
+void testPP(Generator& generator)
 {
 	logText("-- stdPP --");
 	
 	// pre-processing
-	generate(preProcess, false);
+	generator.generate(preProcess, false);
 	// post-processing
-	generate(areaPostProcess, false);
+	generator.generate(areaPostProcess, false);
 	// post-processing (after objects)
-	generate(postPostProcess, false);
+	generator.generate(postPostProcess, false);
 	
 	logText("-- done --");
 }

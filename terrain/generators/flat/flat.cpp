@@ -4,33 +4,33 @@
  *
 **/
 
-#include "generator.h"
-#include "biome/biome.hpp"
+#include <biome/biome.hpp>
+#include <generator.h>
 #include "flatgen.hpp"
 #include "flatpp.hpp"
 
-void flatGen()
+void flatGen(Generator& generator)
 {
 	logText("-- flatGen --");
 	
 	// generate biomes
-	generate(&biomeGenerator, true);
+	generator.generate(&biomeGenerator, true);
 	
 	// generate land
-	generate(&flatTerrain, false);
+	generator.generate(&flatTerrain, false);
 	
 	logText("-- done --");
 	
 }
 
-void flatPP()
+void flatPP(Generator& generator)
 {
 	logText("-- flatPP --");
 	
 	// post-processing
-	generate(&flatPostProcess, false);
+	generator.generate(&flatPostProcess, false);
 	// post-post-processing :)
-	generate(&postPostProcess, false);
+	generator.generate(&postPostProcess, false);
 	
 	logText("-- done --");
 }

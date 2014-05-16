@@ -24,14 +24,15 @@ Sector* spiderwrap(int& bx, int& by, int& bz)
 void setb(int x, int y, int z, block_t block, bool overwrite)
 {
 	Sector* sector = spiderwrap(x, y, z);
-	
 	if (sector)
 	{
 		if (sector->hasBlocks() == false)
 		{
 			sector->createBlocks();
+			// set immediately
+			sector[0](x, y, z) = block;
+			return;
 		}
-		
 		block_t& dest = sector[0](x, y, z);
 		
 		if ((dest & 1023) == _AIR || overwrite)

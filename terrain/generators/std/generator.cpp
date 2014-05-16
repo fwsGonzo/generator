@@ -136,7 +136,7 @@ block_t getTerrainComplex(f32_t y, f32_t in_beachhead, f32_t density, f32_t cave
 
 // the main generator!
 
-void terrainGenerator(genthread* l_thread)
+void terrainGenerator(genthread_t* l_thread)
 {
 	// interpolation grid partitions
 	#define ngrid 8
