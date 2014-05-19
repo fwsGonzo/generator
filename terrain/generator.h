@@ -74,4 +74,7 @@ inline cl_rgb toColor(unsigned int col)
 		(col >> 16) & 255);
 }
 
+// finishes sectors making them ready for compression
+extern void finishSectors(Generator& gen);
+
 #endif

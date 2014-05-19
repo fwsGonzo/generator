@@ -72,4 +72,4 @@ all: $(CXXOBJS) $(CCOBJS) $(CCRES)
 
 # remove each known .o file, and output
 clean:
-	$(RM) $(CXXOBJS) $(CCOBJS) $(CCRES) *~ $(OUTPUT).*
+	$(RM) $(CXXOBJS) $(CCOBJS) $(CCRES) *~ $(OUTPUT)

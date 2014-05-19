@@ -34,8 +34,6 @@ private:
 
 void Generator::generate(genfunc_t genfunc, bool border)
 {
-	std::cout << "Generating chunk of land" << std::endl;
-	
 	if (genfunc == nullptr)
 	{
 		std::cout << "generate(): suspicious pointer: " << genfunc << std::endl;
@@ -43,11 +41,10 @@ void Generator::generate(genfunc_t genfunc, bool border)
 	}
 	
 	double fx = (double)(sectors.getWorldOffsetX() - Sectors::WORLD_CENTER);
-	double fz;
 	
 	for (int x = 0; x < sectors.getXZ(); x++)
 	{
-		fz = (double)(sectors.getWorldOffsetZ() - Sectors::WORLD_CENTER);
+		double fz = sectors.getWorldOffsetZ() - Sectors::WORLD_CENTER;
 		
 		for (int z = 0; z < sectors.getXZ(); z++)
 		{
@@ -66,8 +63,6 @@ void Generator::generate(genfunc_t genfunc, bool border)
 		fx += 1.0;
 	}
 	
-	std::cout << "Waiting for threads to finish" << std::endl;
 	// wait for all threads to finish
 	tpool->sync_all();
-	std::cout << "Finished" << std::endl;
 }

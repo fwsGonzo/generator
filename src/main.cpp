@@ -4,10 +4,12 @@
 #include "generator.hpp"
 #include <iostream>
 
+#include <library/timing/timer.hpp>
+
 using namespace library;
 
-extern void flatGen(Generator&);
-extern void flatPP(Generator&);
+extern void testGen(Generator&);
+extern void testPP(Generator&);
 
 int main(void)
 {
@@ -18,10 +20,21 @@ int main(void)
 	
 	Generator gen(8);
 	
+	Timer t;
 	
+	t.startNewRound();
+	testGen(gen);
+	std::cout << "Time: " << t.getDeltaTime() << std::endl;
 	
-	flatGen(gen);
-	flatPP(gen);
+	t.startNewRound();
+	testPP(gen);
+	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+	
+	std::cout << "Finishing sectors" << std::endl;
+	t.startNewRound();
+	/// make ready for compressor ///
+	finishSectors(gen);
+	std::cout << "Time: " << t.getDeltaTime() << std::endl;
 	
 	return 0;
 }

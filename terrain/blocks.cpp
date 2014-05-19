@@ -42,7 +42,7 @@ void setb(int x, int y, int z, block_t block, bool overwrite)
 	}
 	else
 	{
-		std::cout << "setb out of bounds" << std::endl;
+		//std::cout << "setb out of bounds" << std::endl;
 	}
 }
 block* getb(int x, int y, int z)

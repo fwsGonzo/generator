@@ -6,8 +6,10 @@
       <Project Name="generator" ConfigName="Debug"/>
       <Project Name="generator" ConfigName="Debug"/>
       <Project Name="generator" ConfigName="Debug"/>
+      <Project Name="generator" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Project Name="generator" ConfigName="Release"/>
       <Project Name="generator" ConfigName="Release"/>
       <Project Name="generator" ConfigName="Release"/>
       <Project Name="generator" ConfigName="Release"/>
