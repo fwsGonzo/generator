@@ -6,7 +6,7 @@
 # -Ofast -mfpmath=both -march=native -flto
 # -Ofast -mfpmath=both -march=native
 # -g -Og
-BUILDOPT = -ggdb3 #-Ofast -mfpmath=both -march=native
+BUILDOPT = -Ofast -mfpmath=both -march=native
 # output file
 OUTPUT   = ./generator
 

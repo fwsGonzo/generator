@@ -18,7 +18,7 @@ int main(void)
 	
 	sectors.init(32);
 	
-	Generator gen(8);
+	Generator gen(4);
 	
 	Timer t;
 	
