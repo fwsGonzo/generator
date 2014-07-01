@@ -3,18 +3,21 @@
 #include <library/threading/TThreadPool.hpp>
 #include <genthread.h>
 #include <sectors.hpp>
+#include <world.hpp>
 #include <iostream>
+
+using namespace ThreadPool;
 
 Generator::Generator(int threads)
 {
-	tpool = new ThreadPool::TPool(threads);
+	tpool = new TPool(threads);
 }
 Generator::~Generator()
 {
 	delete tpool;
 }
 
-class Job : public ThreadPool::TPool::TJob
+class Job : public TPool::TJob
 {
 public:
 	Job(Generator::genfunc_t func, const genthread_t& gt) : TJob()
@@ -23,7 +26,7 @@ public:
 		this->gt = gt;
 	}
 	
-	virtual void run(void* unused)
+	virtual void run(void*)
 	{
 		genfunc(&gt);
 	}
@@ -36,15 +39,17 @@ void Generator::generate(genfunc_t genfunc, bool border)
 {
 	if (genfunc == nullptr)
 	{
-		std::cout << "generate(): suspicious pointer: " << genfunc << std::endl;
+		std::cout << "generate(): genfunc pointer was null" << std::endl;
 		return;
 	}
 	
-	double fx = (double)(sectors.getWorldOffsetX() - Sectors::WORLD_CENTER);
+	double fx = world.getWorldX() - World::WORLD_CENTER;
+	fx *= Sector::BLOCKS_XZ;
 	
 	for (int x = 0; x < sectors.getXZ(); x++)
 	{
-		double fz = sectors.getWorldOffsetZ() - Sectors::WORLD_CENTER;
+		double fz = world.getWorldZ() - World::WORLD_CENTER;
+		fz *= Sector::BLOCKS_XZ;
 		
 		for (int z = 0; z < sectors.getXZ(); z++)
 		{
@@ -58,9 +63,9 @@ void Generator::generate(genfunc_t genfunc, bool border)
 			// run and delete job after
 			tpool->run(new Job(genfunc, gt), nullptr, true);
 			
-			fz += 1.0;
+			fz += Sector::BLOCKS_XZ;
 		}
-		fx += 1.0;
+		fx += Sector::BLOCKS_XZ;
 	}
 	
 	// wait for all threads to finish

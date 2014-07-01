@@ -5,6 +5,7 @@
 
 typedef int wcoord_t;
 
+#pragma pack(push, 4)
 class Sector
 {
 public:
@@ -18,7 +19,7 @@ public:
 	#pragma pack(push, 2)
 	typedef struct sectorblock_t
 	{
-		block_t b[BLOCKS_XZ][BLOCKS_XZ][BLOCKS_Y];
+		block_t b[BLOCKS_XZ * BLOCKS_XZ * BLOCKS_Y];
 		short blocks;
 		short torchlight;
 		unsigned char hardsolid;
@@ -31,9 +32,9 @@ public:
 	Sector() { blocks = nullptr; }
 	~Sector() { delete blocks; }
 	
-	inline wcoord_t getWX() const { return wx; }
-	inline wcoord_t getWY() const { return wy; }
-	inline wcoord_t getWZ() const { return wz; }
+	inline wcoord_t getX() const { return x; }
+	inline wcoord_t getY() const { return y; }
+	inline wcoord_t getZ() const { return z; }
 	
 	inline bool hasBlocks() const
 	{
@@ -41,11 +42,15 @@ public:
 	}
 	inline block_t* getBlocks()
 	{
-		return blocks->b[0][0];
+		return blocks->b;
+	}
+	inline short blockCount() const
+	{
+		return blocks->blocks;
 	}
 	inline block_t& operator() (int bx, int by, int bz)
 	{
-		return blocks->b[bx][bz][by];
+		return blocks->b[(bx * BLOCKS_XZ + bz) * BLOCKS_Y + by];
 	}
 	
 	// operations
@@ -54,20 +59,19 @@ public:
 	void createBlocks();
 	
 private:
-	wcoord_t wx;
-	wcoord_t wy;
-	wcoord_t wz;
+	wcoord_t x;
+	wcoord_t y;
+	wcoord_t z;
 	sectorblock_t* blocks;
 	
 	friend class Sectors;
+	friend class Compressor;
 };
+#pragma pack(pop)
 
 class Sectors
 {
 public:
-	static const wcoord_t WORLD_SIZE   = 268435456;
-	static const wcoord_t WORLD_CENTER = WORLD_SIZE / 2;
-	
 	static const int SECTORS_Y  = 32;
 	static const int BORDER     = 2;
 	static const int WATERLEVEL = 8; // water sectorlevel
@@ -77,25 +81,23 @@ public:
 	void init(int axis_size);
 	void reset();
 	
-	// world offsets
-	wcoord_t getWorldOffsetX() const { return worldOffsetX; }
-	wcoord_t getWorldOffsetZ() const { return worldOffsetZ; }
-	
 	// sector getters
 	inline int getXZ() const
 	{
 		return sectorsXZ;
 	}
-	Sector& operator() (int x, int y, int z)
+	inline Sector& operator() (int x, int y, int z)
 	{
-		return sectors[sectorsXZ * SECTORS_Y * x + SECTORS_Y * z + y];
+		return sectors[(sectorsXZ * x + z) * SECTORS_Y + y];
+	}
+	inline Sector& operator() (int x, int z)
+	{
+		return sectors[(sectorsXZ * x + z) * SECTORS_Y];
 	}
 	
 private:
 	int sectorsXZ;
 	
-	wcoord_t worldOffsetX;
-	wcoord_t worldOffsetZ;
 	Sector* sectors;
 };
 extern Sectors sectors;

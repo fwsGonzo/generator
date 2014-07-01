@@ -15,7 +15,7 @@
 	extern int toTerrain(int biome);
 	
 	// scale
-	#define BIOME_SCALE 22.0
+	#define BIOME_SCALE 0.1
 	
 	// terrains
 	#define T_ICECAP    0

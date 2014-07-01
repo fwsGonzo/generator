@@ -11,7 +11,7 @@ struct GLFWwindow;
 
 namespace library
 {
-	struct WindowConfig
+	typedef struct WindowConfig
 	{
 	public:
 		WindowConfig();
@@ -24,7 +24,9 @@ namespace library
 		int refreshrate;
 		int SW, SH;
 		int multisample;
-	};
+		int depthbits;
+		int stencbits;
+	} WindowConfig;
 	
 	class WindowClass;
 	

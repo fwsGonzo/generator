@@ -2,7 +2,6 @@
 #define TG_GENERATOR_HPP
 
 #define GEN_FULLHEIGHT 255
-#define GEN_WORLDSCALE 0.00390625
 #define GEN_WATERLEVEL 0.25
 #define GEN_WATERBLOCKS 64
 
@@ -64,7 +63,7 @@ typedef struct cl_rgba {
 
 inline unsigned int toColor(const cl_rgb& col)
 {
-	return (col.r << 24) + (col.g << 16) + (col.b << 8);
+	return (col.r) + (col.g << 8) + (col.b << 16);
 }
 inline cl_rgb toColor(unsigned int col)
 {

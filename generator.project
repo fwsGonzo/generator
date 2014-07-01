@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="generator" InternalType="">
   <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
     <Plugin Name="CMakePlugin">
       <![CDATA[[{
 		"name":	"Debug",
@@ -12,9 +15,6 @@
 		"arguments":	[],
 		"parentProject":	""
 	}]]]>
-    </Plugin>
-    <Plugin Name="qmake">
-      <![CDATA[00010001N0005Debug000000000000]]>
     </Plugin>
   </Plugins>
   <VirtualDirectory Name="terrain">
@@ -93,6 +93,8 @@
     <File Name="terrain/blocks.hpp"/>
     <File Name="terrain/interface.hpp"/>
     <File Name="terrain/finish.cpp"/>
+    <File Name="terrain/world.hpp"/>
+    <File Name="terrain/world.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="inc">
     <VirtualDirectory Name="library">
@@ -194,6 +196,14 @@
     <File Name="src/main.cpp"/>
     <File Name="src/generator.cpp"/>
     <File Name="src/generator.hpp"/>
+    <File Name="src/compressor.cpp"/>
+    <File Name="src/compressor_rle.cpp"/>
+    <File Name="src/compressor.hpp"/>
+    <File Name="src/chunks.hpp"/>
+    <File Name="src/chunks.cpp"/>
+    <File Name="src/compressor_rle.hpp"/>
+    <File Name="src/lzo.cpp"/>
+    <File Name="src/lzo.hpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="misc">
     <File Name="Makefile"/>
@@ -214,7 +224,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="" Command="./generator" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="" Command="./generator" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -228,7 +238,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make clean</CleanCommand>
-        <BuildCommand>make</BuildCommand>
+        <BuildCommand>make -j4</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

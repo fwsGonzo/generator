@@ -25,7 +25,10 @@ inline double ramp(double x, double p)
 
 float getnoise_caves(vec3 p)
 {
-	vec3 npos = (vec3) { p.x * 1.2, p.y * 2.0, p.z * 1.2 };
+	vec3 npos;
+	npos.x = p.x * 0.012;
+	npos.y = p.y * 2.0;
+	npos.z = p.z * 0.012;
 	
 	float n1 = snoise3(npos.x, npos.y, npos.z);
 	
@@ -180,6 +183,9 @@ f32_t getnoise_autumn(vec3 p)
 
 f32_t getnoise_islands(vec3 p)
 {
+	p.x *= 0.001;
+	p.z *= 0.001;
+	
 	f64_t n0 = sfreq2d(p, 0.25); // continental
 	
 	f64_t landy = (0.5 + 0.5 * n0) * 2.0;
@@ -352,6 +358,8 @@ f32_t getnoise_grass(vec3 p)
 
 f32_t getnoise_marsh(vec3 p)
 {
+	p.x *= 0.001;
+	p.z *= 0.001;
 	f32_t n1 = sfreq(p, 0.3) * 0.025 + sfreq(p, 2.5) * 0.0125;
 	f32_t n2 = sfreq(p, 0.4) * 0.025 + sfreq(p, 2.6) * 0.0125;
 	
@@ -401,6 +409,8 @@ f32_t getnoise_marsh(vec3 p)
 f32_t getnoise_jungle(vec3 p)
 {
 	f64_t inv_y = 1.0 - p.y;
+	p.x *= 0.001;
+	p.z *= 0.001;
 	
 	const f64_t noise1 = 1.0, noise_rel1 = 1.0 / 5.0;
 	const f64_t noise2 = 8.0, noise_rel2 = 16.0;
@@ -442,7 +452,6 @@ f32_t getnoise_jungle(vec3 p)
 	}
 	
 	return n1;
-	
 }
 
 f32_t getnoise_desert(vec3 p)

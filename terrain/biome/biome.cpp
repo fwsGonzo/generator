@@ -172,24 +172,23 @@ void biomeGenerator(genthread_t* l_thread)
 	biome_t biome;
 	f32_t determinator, bigw;
 	cl_rgb biomecl[CL_MAX], tempcl;
+	cl_rgb zeroColor(0, 0, 0);
 	
 	int x, z;
 	int i, terrain, bigt = 0;
 	
-	static const int BlocksSquared = Sector::BLOCKS_XZ * Sector::BLOCKS_XZ;
-	
 	for (x = 0; x < Sector::BLOCKS_XZ; x++)
 	for (z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
-		p.x = l_thread->p.x + (f64_t) x / BlocksSquared;
-		p.z = l_thread->p.z + (f64_t) z / BlocksSquared;
+		p.x = l_thread->p.x + (f64_t) x / Sector::BLOCKS_XZ;
+		p.z = l_thread->p.z + (f64_t) z / Sector::BLOCKS_XZ;
 		
 		// don't scale p.x and p.z!!!!!!!!!!!!
 		biome = biomeGen(p.x, p.z);
 		
 		// reset vertex colors all in one swoooop
 		for (i = 0; i < CL_MAX; i++)
-			biomecl[i] = (cl_rgb) {0, 0, 0};
+			biomecl[i] = zeroColor;
 		
 		determinator = bigw = 0.0;
 		
@@ -256,8 +255,8 @@ void biomeGenerator(genthread_t* l_thread)
 		const f32_t TREES_GRAD_WEIGHT = 0.55;
 		const f32_t STONE_GRAD_WEIGHT = 0.75;
 		
-		f32_t randomness  = 10.0 + snoise2(p.x*0.1, p.z*0.1) * 8.0 + snoise2(p.x*2.5, p.z*2.5) * 2.0;
-		f32_t randomness2 = 10.0 + snoise2(p.z*0.2, p.x*0.2) * 8.0 + snoise2(p.x*2.6, p.z*2.6) * 2.0;
+		f32_t randomness  = 10.0 + snoise2(p.x*0.01, p.z*0.01) * 8.0 + snoise2(p.x*0.25, p.z*0.25) * 2.0;
+		f32_t randomness2 = 10.0 + snoise2(p.z*0.02, p.x*0.02) * 8.0 + snoise2(p.x*0.26, p.z*0.26) * 2.0;
 		
 		// create randomness on certain color types
 		// but only if this particular terrain has extra coloring
@@ -266,11 +265,11 @@ void biomeGenerator(genthread_t* l_thread)
 			determinator *= GRASS_GRAD_WEIGHT;
 			
 			tempcl = getGradientGrass(randomness, randomness2);
-			biomecl[CL_GRASS] = mixColor(&biomecl[CL_GRASS], &tempcl, determinator);
-			biomecl[CL_CROSS] = mixColor(&biomecl[CL_CROSS], &tempcl, determinator);
+			//biomecl[CL_GRASS] = mixColor(&biomecl[CL_GRASS], &tempcl, determinator);
+			//biomecl[CL_CROSS] = mixColor(&biomecl[CL_CROSS], &tempcl, determinator);
 			
 			tempcl = getGradientGrass(randomness2, randomness);
-			biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
+			//biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
 		}
 		
 		// always modulate stone color

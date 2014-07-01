@@ -1,5 +1,5 @@
-#ifndef GENERATOR_HPP
-#define GENERATOR_HPP
+#ifndef G_GENERATOR_HPP
+#define G_GENERATOR_HPP
 
 #include <generator.h>
 

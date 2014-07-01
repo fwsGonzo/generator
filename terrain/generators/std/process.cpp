@@ -64,21 +64,19 @@ void areaPostProcess(genthread_t* l_thread)
 	// ore deposit _max_ count per column
 	int     depo_count[NUM_ORES] = {   40,    20,    10,      15,        15,          7    };
 	
-	static const int BlocksSquared = Sector::BLOCKS_XZ * Sector::BLOCKS_XZ;
-	
 	for (dx = x; dx < x + Sector::BLOCKS_XZ; dx++)
 	{
 		// world coordinate X
-		p.x = l_thread->p.x + (double)(dx - x) / (double) BlocksSquared;
+		p.x = l_thread->p.x + (dx - x);
 		
 		for (dz = z; dz < z + Sector::BLOCKS_XZ; dz++)
 		{
 			// world coordinate Z
-			p.z = l_thread->p.z + (double)(dz - z) / (double) BlocksSquared;
+			p.z = l_thread->p.z + (dz - z);
 			
 			// gravel / stone areas
-			f64_t groundtype = snoise2(p.x * 1.0, p.z * 1.0) * 0.8 + 
-							   snoise2(p.x * 5.0, p.z * 5.0) * 0.2;
+			f64_t groundtype = snoise2(p.x * 0.001, p.z * 0.001) * 0.6 + 
+							   snoise2(p.x * 0.02, p.z * 0.02) * 0.4;
 			
 			// get terrain id
 			terrain = flat(dx & (Sector::BLOCKS_XZ-1), 

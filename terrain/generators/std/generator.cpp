@@ -143,7 +143,6 @@ void terrainGenerator(genthread_t* l_thread)
 	#define ygrid 4 // not yet used
 	
 	const f64_t grid_pfac = Sector::BLOCKS_XZ / (f64_t)ngrid;
-	const f64_t grid_wfac = 1.0 / (Sector::BLOCKS_XZ * Sector::BLOCKS_XZ);
 	// noise data
 	f32_t noisearray[ngrid+1][ngrid+1];
 	f32_t cavesarray[ngrid+1][ngrid+1];
@@ -162,17 +161,17 @@ void terrainGenerator(genthread_t* l_thread)
 	for (x = 0; x <= ngrid; x++)
 	{
 		fx = (f64_t)x * grid_pfac;
-		p.x = l_thread->p.x + fx * grid_wfac;
+		p.x = l_thread->p.x + fx;
 		
 		for (z = 0; z <= ngrid; z++)
 		{
 			fz = (f64_t)z * grid_pfac;
-			p.z = l_thread->p.z + fz * grid_wfac;
+			p.z = l_thread->p.z + fz;
 			
 			// don't scale p.x and p.z!!!!!!!!!!!!
 			biomearray[x][z] = biomeGen(p.x, p.z);
 			
-			beachhead[x][z] = snoise2(p.x * 0.91, p.z * 0.91);
+			beachhead[x][z] = snoise2(p.x * 0.009, p.z * 0.009);
 		}
 	}
 	
@@ -195,11 +194,11 @@ void terrainGenerator(genthread_t* l_thread)
 		
 		for (x = 0; x <= ngrid; x++)
 		{
-			p.x = l_thread->p.x + (f64_t)x * grid_pfac * grid_wfac;
+			p.x = l_thread->p.x + (f64_t)x * grid_pfac;
 			
 			for (z = 0; z <= ngrid; z++)
 			{
-				p.z = l_thread->p.z + (f64_t)z * grid_pfac * grid_wfac;
+				p.z = l_thread->p.z + (f64_t)z * grid_pfac;
 				
 				biomeptr = &biomearray[x][z];
 				noisearray[x][z] = 0.0;
@@ -254,15 +253,15 @@ void terrainGenerator(genthread_t* l_thread)
 		
 		for (x = 0; x < Sector::BLOCKS_XZ; x++)
 		{
-			fx = (f32_t)x / (f32_t)Sector::BLOCKS_XZ * ngrid;
+			fx = x / (f32_t)Sector::BLOCKS_XZ * ngrid;
 			bx = (int)fx; // start x
-			frx = fx - (f32_t)bx;
+			frx = fx - bx;
 			
 			for (z = 0; z < Sector::BLOCKS_XZ; z++)
 			{
-				fz = (f32_t)z / (f32_t)Sector::BLOCKS_XZ * ngrid;
-				bz = (int)fz; // integral
-				frz = fz - (f32_t)bz; // fractional
+				fz = z / (f32_t)Sector::BLOCKS_XZ * ngrid;
+				bz = (int)fz;  // integral
+				frz = fz - bz; // fractional
 				
 				// density weights //
 				w0 = mix( noisearray[bx][bz  ], noisearray[bx+1][bz  ], frx );

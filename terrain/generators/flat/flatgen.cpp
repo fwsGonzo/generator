@@ -2,12 +2,15 @@
  * Flat world generator
  * 
 **/
+#include <library/log.hpp>
 #include <generator.h>
 #include <genthread.h>
 #include <sectors.hpp>
 #include <blocks.hpp>
 #include "biome/biome.hpp"
 #include "noise/simplex1234.h"
+
+using namespace library;
 
 // flat terrain generation function
 
@@ -22,14 +25,13 @@ void flatTerrain(genthread_t* l_thread)
 	unsigned short id = _AIR;
 	
 	// some noise
-	const f64_t grid_wfac = 1.0 / (f64_t)(Sector::BLOCKS_XZ * Sector::BLOCKS_XZ);
 	float simplex[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
 	
 	for (int x = 0; x < Sector::BLOCKS_XZ; x++)
 	for (int z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
-		p.x = l_thread->p.x + (f64_t)x * grid_wfac;
-		p.z = l_thread->p.z + (f64_t)z * grid_wfac;
+		p.x = (l_thread->p.x + (f64_t)x) * 0.01;
+		p.z = (l_thread->p.z + (f64_t)z) * 0.01;
 		simplex[x][z] = 0.5 + snoise2(p.x, p.z) * 0.25;
 	}
 	
@@ -57,12 +59,14 @@ void flatTerrain(genthread_t* l_thread)
 			if (p.y < h) id = _GREENSOIL;
 			
 			// set directly
-			if (s->hasBlocks() == false)
+			if (id)
 			{
-				s->createBlocks();
+				if (s->hasBlocks() == false)
+				{
+					s->createBlocks();
+				}
+				s[0](x, by, z) = id;
 			}
-			s[0](x, by, z) = id;
-			
 		} // x/z
 		
 	} // y

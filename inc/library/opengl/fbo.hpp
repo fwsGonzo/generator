@@ -48,7 +48,7 @@ namespace library
 		void removeDepth();
 		
 		// create depth renderbuffer
-		void createDepthRBO(int width, int height);
+		void createDepthRBO(int width, int height, GLenum internalFormat);
 		void attachDepthRBO(const FBO&);
 		// create multisampling renderbuffer
 		void createMsaaRBO(int width, int height, int samples);
@@ -67,6 +67,7 @@ namespace library
 		
 		// blit from one framebuffer to another
 		void blitTo(FBO& dest_fbo, int w, int h, int mask, int filter);
+		void blitTo(FBO& dest_fbo, int w, int h, int w2, int h2, int mask, int filter);
 		
 		// returns true if the framebuffer is OK, and can be used
 		// returns false if the framebuffer is incomplete, and thus cannot be used yet
