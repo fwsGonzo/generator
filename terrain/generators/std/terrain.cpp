@@ -1,12 +1,12 @@
 #include "terrain.hpp"
 
+#include <library/math/vector.hpp>
 #include "generator.h"
 #include "blocks.hpp"
-#include "vec.h"
 #include <cmath>
 
-#include "noise/cosnoise.h"
-#include "noise/simplex1234.h"
+#include <noise/cosnoise.h>
+#include <noise/simplex1234.h>
 #include "terrain_functions.hpp"
 
 #define sfreq(v, n) snoise3(v.x * n, v.y * n, v.z * n)
@@ -14,28 +14,28 @@
 
 // individual noise functions for each terrain type
 
-f32_t lower_grass(vec3 p);
+using namespace library;
 
-inline double ramp(double x, double p)
+float lower_grass(vec3 p);
+
+inline float ramp(float x, float p)
 {
+	if (x >= 0.0f && x <= 1.0f)
+		return std::pow(x, p);
 	if (x < 0.0) return 0.0;
-	if (x > 1.0) return 1.0;
-	return std::pow(x, p);
+	return 1.0;
 }
 
 float getnoise_caves(vec3 p)
 {
-	vec3 npos;
-	npos.x = p.x * 0.012;
-	npos.y = p.y * 2.0;
-	npos.z = p.z * 0.012;
+	vec3 npos = p * vec3(0.001, 2.0, 0.001);
 	
 	float n1 = snoise3(npos.x, npos.y, npos.z);
 	
-	const float CAVE_TRESHOLD = 0.2;
+	const float CAVE_TRESHOLD = 0.22;
 	if (n1 >= 0.0 && n1 < CAVE_TRESHOLD)
 	{
-		npos.y *= 2.5;
+		npos *= vec3(12.0, 2.0, 12.0);
 		
 		// cross noise
 		float n2 = snoise3(npos.x, npos.y, npos.z);
@@ -44,7 +44,7 @@ float getnoise_caves(vec3 p)
 		
 		// caves increase in density as we go lower
 		float DEPTH_DENSITY = 0.1 + (1.0 - p.y * p.y) * 0.2;
-		float cavenoise = fabs(n2 + n3 + n4);
+		float cavenoise = std::abs(n2 + n3 + n4);
 		
 		if (cavenoise < DEPTH_DENSITY)
 		{
@@ -55,60 +55,60 @@ float getnoise_caves(vec3 p)
 	return 0.1;
 }
 
-f32_t getnoise_icecap(vec3 p)
+float getnoise_icecap(vec3 p)
 {
-	f64_t n1 = sfreq2d(p, 0.5);
-	f64_t n2 = sfreq2d(p, 0.15);
-	vec3 npos = mul3(&p, 1.0 / 4.0); // the relationship between n1 and npos is 4 / 0.5
+	float n1 = sfreq2d(p, 0.5);
+	float n2 = sfreq2d(p, 0.15);
+	vec3 npos = p / 4.0; // the relationship between n1 and npos is 4 / 0.5
 	
-	const f64_t COSN_CURVE = 0.5; // sharper waves at higher value, crested waves at values < 1.0
-	const f64_t COSN_FAT   = 0.0;
-	f64_t COSN_CUTS  = 0.5 - p.y * 0.5;
+	const float COSN_CURVE = 0.5; // sharper waves at higher value, crested waves at values < 1.0
+	const float COSN_FAT   = 0.0;
+	float COSN_CUTS  = 0.5 - p.y * 0.5;
 	
-	#define COSN_icecap cosnoise(&npos, n1, 0.5, p.y * 2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_icecap cosnoise(npos, n1, 0.5, p.y * 2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
 	
 	return p.y - 0.3 + COSN_icecap * 0.05 + n2 * 0.1;
 }
 
-f32_t getnoise_snow(vec3 p)
+float getnoise_snow(vec3 p)
 {
-	f32_t n1 = sfreq(p, 3.0);
+	float n1 = sfreq(p, 3.0);
 	
 	// peaks
-	f32_t n3 = sfreq2d(p, 2.0);
-	f32_t n4 = sfreq2d(p, 1.7);
+	float n3 = sfreq2d(p, 2.0);
+	float n4 = sfreq2d(p, 1.7);
 	
-	f32_t c1 = sfreq2d(p, 0.5);
-	f32_t c2 = sfreq2d(p, 0.25);
+	float c1 = sfreq2d(p, 0.5);
+	float c2 = sfreq2d(p, 0.25);
 	
-	vec3 npos = mul3(&p, 1.0 / 4.0); // the relationship between n1 and npos is 4 / 3
+	vec3 npos = p / 4.0; // the relationship between n1 and npos is 4 / 3
 	
-	const f64_t COSN_CURVE = 0.5; // sharper waves at higher value, crested waves at values < 1.0
-	const f64_t COSN_FAT   = 0.0;
-	f64_t COSN_CUTS  = 0.5 - p.y * 0.5;
+	const float COSN_CURVE = 0.5; // sharper waves at higher value, crested waves at values < 1.0
+	const float COSN_FAT   = 0.0;
+	float COSN_CUTS  = 0.5 - p.y * 0.5;
 	
-	#define COSN cosnoise(&npos, n1, 0.5, p.y * 2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN cosnoise(npos, n1, 0.5, p.y * 2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
 	
 	n1 = (p.y - 0.25) * p.y - n3 * n3 * 0.25 + n4 * 0.1 + COSN * 0.25;
 	// reduce height by contintental noise
 	n1 += c1 * 0.2 + c2 * 0.1;
 	
 	// create me some bridges
-	const f64_t bridge_height = 0.3;
-	f64_t dist = 1.0 - sqrt(p.y * p.y + bridge_height*bridge_height);
+	const float bridge_height = 0.3;
+	float dist = 1.0 - std::sqrt(p.y * p.y + bridge_height*bridge_height);
 	n1 -= dist * dist * (1.0 - c2 + c1) * 0.75;
 	
 	// ultra-scale down density above clouds
-	const f64_t scaledown = 0.8;
+	const float scaledown = 0.8;
 	if (p.y > scaledown)
 	{
-		f64_t dy = (p.y - scaledown) / (1.0 - scaledown);
+		float dy = (p.y - scaledown) / (1.0 - scaledown);
 		n1 += dy * dy * dy * 0.5;
 	}
 	else if (p.y < 0.2)
 	{
 		// scale up seafloor
-		f64_t dy = (1.0 - p.y / 0.2);
+		float dy = (1.0 - p.y / 0.2);
 		n1 -= dy * dy * 1.0;
 	}
 	
@@ -116,146 +116,130 @@ f32_t getnoise_snow(vec3 p)
 	
 }
 
-f32_t getnoise_autumn(vec3 p)
+float getnoise_autumn(vec3 p)
 {
-	const f64_t noise0 = 0.25;
-	const f64_t noise1 = 1.0, noise_rel1 = 0.5;
-	const f64_t noise2 = 8.0, noise_rel2 = 16.0;
-	const f64_t noise3 = 0.2;
+	p.x *= 0.003;
+	p.z *= 0.003;
 	
-	f64_t n0 = sfreq2d(p, noise0); // continental
-	f64_t n1 = sfreq2d(p, noise1); // island ring
-	f64_t n2 = sfreq(p, noise2);   // carve
-	f64_t n3 = sfreq2d(p, noise3); // calm noise
-	f64_t landscape = sfreq2d(p, 0.5);
+	const float noise0 = 0.25;
+	const float noise1 = 1.0, noise_rel1 = 0.5;
+	const float noise2 = 8.0, noise_rel2 = 16.0;
+	const float noise3 = 0.2;
 	
-	vec3 npos  = mul3(&p, noise_rel1);
-	//vec3 npos2 = mul3(&p, noise_rel2);
+	float n0 = sfreq2d(p, noise0); // continental
+	float n1 = sfreq2d(p, noise1); // island ring
+	float n2 = sfreq(p, noise2);   // 3d carve
+	float n3 = sfreq2d(p, noise3); // calm noise
+	float landscape = sfreq2d(p, 0.5);
 	
-	const f64_t COSN_CURVE = 2.5;
-	const f64_t COSN_FAT   = 0.0;
-	const f64_t COSN_CUTS  = 0.5;
+	vec3 npos = p * noise_rel1;
 	
-	#define COSN_aut  cosnoise(&npos,  n1, 0.5, 0.5, COSN_CURVE, COSN_FAT, COSN_CUTS)
-	#define COSN_aut2 cosnoise(&npos2, n2, 1.0, 1.0, 3.0, COSN_FAT, 0.1)
+	const float COSN_CURVE = 2.5;
+	const float COSN_FAT   = 0.0;
+	const float COSN_CUTS  = 0.5;
+	
+	#define COSN_aut  cosnoise(npos,  n1, 0.5, 0.5, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_aut2 cosnoise(npos2, n2, 1.0, 1.0, 3.0, COSN_FAT, 0.1)
 	
 	float ramping = (n1 + 1.0) * 0.5;
 	
-	float calm = (n3 + 1.0) * 0.5;
-	//calm *= calm;
+	float calm = n3 * 0.5 + 0.5;
 	
-	n1 = p.y * p.y + COSN_aut * (0.5 - fabs(landscape * 0.4)) + n0 * n2 * 0.1;
+	// rings
+	n1 = p.y + 0.05 + COSN_aut * (1.0 + landscape) * 0.4 + n0 * n2 * 0.1;
+	// ground
+	n1 = n1 * (1.0 - calm) + (p.y - 0.35 + n3 * 0.05) * calm;
 	
-	n1 = n1 * (1.0 - calm) + (p.y - 0.28 + n3 * 0.05) * calm;
-	
-	
+	// 3d carved
 	if (n1 < 0.0 && n1 > -0.5)
 	{
-		vec3 npos2 = mul3(&p, noise_rel2);
+		vec3 npos2 = p * noise_rel2;
 		
-		const f64_t C_DEPTH    = 0.2;
-		const f64_t C_SHARP    = 3.0;
-		const f64_t C_STRENGTH = 0.02;
+		const float C_DEPTH    = 0.2;
+		const float C_SHARP    = 3.0;
+		const float C_STRENGTH = 0.02;
 		
-		f64_t cracks = fabs(landscape) * C_STRENGTH * ramping;
+		float cracks = std::abs(landscape) * C_STRENGTH * ramping;
 		
 		n1 += ramp(1.0 - n1 / -C_DEPTH, C_SHARP) * (1.0 + COSN_aut2) * cracks;
-		
-	}
-	
-	// ultra-scale down density above clouds, and severely low down-under
-	const f64_t scaledown = 0.9;
-	const f64_t scaleup = 0.1;
-	
-	if (p.y > scaledown)
-	{
-		f64_t dy = (p.y - scaledown) / (1.0 - scaledown);
-		n1 += dy * dy * 1.0;
-	} else
-	if (p.y < scaleup)
-	{
-		f64_t dy = (scaleup - p.y) / scaleup;
-		n1 -= dy * dy * 1.0;
 	}
 	
 	return n1;
 }
 
-f32_t getnoise_islands(vec3 p)
+float getnoise_islands(vec3 p)
 {
-	p.x *= 0.001;
-	p.z *= 0.001;
+	p.x *= 0.003;
+	p.z *= 0.003;
 	
-	f64_t n0 = sfreq2d(p, 0.25); // continental
+	float n0 = sfreq2d(p, 0.25); // continental
 	
-	f64_t landy = (0.5 + 0.5 * n0) * 2.0;
-	f64_t n1 = snoise3(p.x, p.y * landy, p.z);   // island ring
-	f64_t n2 = sfreq(p, 8.0);   // carve
-	f64_t landscape = sfreq2d(p, 0.5);
+	float landy = (0.5 + 0.5 * n0) * 2.0;
+	float n1 = snoise3(p.x, p.y * landy, p.z);   // island ring
+	float n2 = sfreq(p, 8.0);   // carve
+	float landscape = sfreq2d(p, 0.5);
 	
-	const f64_t noise_rel1 = 4.0;
-	const f64_t noise_rel2 = 16.0;
+	const float noise_rel1 = 4.0;
+	const float noise_rel2 = 16.0;
 	
-	vec3 npos  = mul3(&p, noise_rel1);
+	vec3 npos = p * noise_rel1;
 	npos.y *= landy;
 	
-	const f64_t COSN_CURVE = 4.0;
-	const f64_t COSN_FAT   = 0.0;
-	const f64_t COSN_CUTS  = 0.5; //p.y * 0.2 + 0.4;
+	const float COSN_CURVE = 4.0;
+	const float COSN_FAT   = 0.0;
+	const float COSN_CUTS  = 0.5; //p.y * 0.2 + 0.4;
 	
-	//const f64_t cliffscale = 0.005; // higher = narrower
-	f64_t landx = 0.05; // + fabs(landscape - n0) * cliffscale;
-	f64_t landz = 0.05; // + fabs(n0 - landscape) * cliffscale;
+	//const float cliffscale = 0.005; // higher = narrower
+	float landx = 0.05; // + fabs(landscape - n0) * cliffscale;
+	float landz = 0.05; // + fabs(n0 - landscape) * cliffscale;
 	
-	#define COSN_isl1 cosnoise(&npos,  n1, landx, landz, COSN_CURVE, COSN_FAT, COSN_CUTS)
-	#define COSN_isl2 cosnoise(&npos2, n2,  0.1,  2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_isl1 cosnoise(npos,  n1, landx, landz, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_isl2 cosnoise(npos2, n2,  0.1,  2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
 	
 	// lower height + compr noise    + continental
-	n1 = p.y * p.y + COSN_isl1 * 0.25 + fabs(n0) * 0.15 + 0.05;
+	n1 = p.y * p.y + COSN_isl1 * 0.25 + std::abs(n0) * 0.15 + 0.05;
 	
 	// create me some pillars
 	pillars(p, landscape, n1);
 	
 	// ultra-scale down density above clouds, and severely low down-under
-	const f64_t scaledown = 0.90;
-	const f64_t scaleup   = 0.25;
+	const float scaledown = 0.90;
+	const float scaleup   = 0.25;
 	
 	if (p.y > scaledown) {
-		f64_t dy = (p.y - scaledown) / (1.0 - scaledown);
+		float dy = (p.y - scaledown) / (1.0 - scaledown);
 		n1 += dy * dy * 1.0;
 	} else
 	if (p.y < scaleup) {
-		f64_t dy = (scaleup - p.y) / scaleup;
+		float dy = (scaleup - p.y) / scaleup;
 		n1 -= dy * dy * 0.5;
 	}
 	
-	const f64_t C_DEPTH    = 0.2;
-	const f64_t C_SHARP    = 3.0;
-	const f64_t C_STRENGTH = 0.04;
+	const float C_DEPTH    = 0.2;
+	const float C_SHARP    = 3.0;
+	const float C_STRENGTH = 0.04;
 	
 	// add cracks after scaling bottom / top
 	if (n1 < 0.0 && n1 > -C_DEPTH) {
 		
-		vec3 npos2 = mul3(&p, noise_rel2);
+		vec3 npos2 = p * noise_rel2;
 		npos2.y *= 0.5;
 		
-		f64_t cracks = fabs(landscape) * C_STRENGTH;
+		float cracks = std::abs(landscape) * C_STRENGTH;
 		
 		n1 += ramp(1.0 - n1 / -C_DEPTH, C_SHARP) * (0.5 + COSN_isl2 * 0.5) * cracks;
 		
 	}
-	
 	return n1;
-	
 }
 
 
 double nmix2(double x)
 {
-	return x * 0.8 + (fabs(x)-0.5) * (0.2*2);
+	return x * 0.8 + (std::abs(x)-0.5) * (0.2*2);
 }
 
-f32_t lower_grass(vec3 p)
+float lower_grass(vec3 p)
 {
 	double gx = p.x * 0.25;
 	double gy = p.z * 0.25;
@@ -269,9 +253,9 @@ f32_t lower_grass(vec3 p)
 	s = p.y - (0.1 + s*ghei*ghei * 2.5);
 	
 	/*
-	f64_t px = p.x * 0.5;
-	f64_t py = p.y * 0.25;
-	f64_t pz = p.z * 0.5;
+	float px = p.x * 0.5;
+	float py = p.y * 0.25;
+	float pz = p.z * 0.5;
 	double dsn4 = (snoise3(px*1.54, py*1.53, pz*1.55)) + 
 				fabs(snoise3(px*3.14, py*3.14, pz*3.35)) * 0.7 + 
 				fabs(snoise3(px*6.74, py*6.94, pz*6.35))* 0.35 + s * s * 3.0;
@@ -282,32 +266,32 @@ f32_t lower_grass(vec3 p)
 	*/
 	
 	// ultra-scale down density above clouds
-	const f64_t scaledown = 0.9;
+	const float scaledown = 0.9;
 	if (p.y > scaledown) {
-		f64_t dy = (p.y - scaledown) / (1.0 - scaledown);
+		float dy = (p.y - scaledown) / (1.0 - scaledown);
 		s += dy * dy * 1.0;
 	}
 	
 	return s;
 }
 
-f32_t cracks(f64_t x, f64_t y, f32_t width, f32_t down_ratio)
+float cracks(float x, float y, float width, float down_ratio)
 {
 	int ix = FASTFLOOR(x); // first find the x block
 	y += noise1u(ix); // randomize the y offset
 	int iy = FASTFLOOR(y); // find the y block
 
-	f32_t dx = x - ix - 0.5;
-	f32_t dy = y - iy - 0.5;
+	float dx = x - ix - 0.5;
+	float dy = y - iy - 0.5;
 
-	dy = 1.0f - fabsf(dy) * 2;
+	dy = 1.0f - std::abs(dy) * 2;
 	dy = dy*dy*(3 - 2*dy);
 	
-	dx = fabsf(dx)*2 / width + (1-dy); if (dx > 1) dx = 1;
+	dx = std::abs(dx)*2 / width + (1-dy); if (dx > 1) dx = 1;
 	dx = 1 - dx*dx;
 	
-	f32_t d = sqrtf(dx*dx + dy*dy);
-	f32_t max_depth = noise1u(ix + iy*40501); // crack depth
+	float d = std::sqrt(dx*dx + dy*dy);
+	float max_depth = noise1u(ix + iy*40501); // crack depth
 	
 	d = -max_depth * dx * dy;
 	if (d > 0) d = 0;
@@ -318,33 +302,34 @@ f32_t cracks(f64_t x, f64_t y, f32_t width, f32_t down_ratio)
 	return d;
 }
 
-f32_t getnoise_grass(vec3 p)
+float getnoise_grass(vec3 p)
 {
-	f64_t scale = 3.7;
-	f64_t stretch = 1.0 / 12.0;
-	f32_t width = 1.5f;
+	p.x *= 0.002;
+	p.z *= 0.002;
+	float scale = 3.7;
+	float stretch = 1.0 / 12.0;
+	float width = 1.5f;
 	
-	f64_t ang = snoise2(p.x*0.75, p.z*0.7) * 0.04;
-	
-	f64_t cosa = cos(ang);
-	f64_t sina = sin(ang);
-	
-	f64_t xx = (cosa * p.x + sina * p.z) * scale;
-	f64_t zz = (cosa * p.z - sina * p.x) * scale;
+	float lnoise = snoise2(p.x*0.75, p.z*0.7);
 	
 	// 0.3 is land base-height, 0.4 is higher up, 0.2 is underwater
-	f64_t land = 0.35 + ang / 0.04 * 0.05;
+	float land = 0.32 + lnoise * 0.05;
 	
-	land += snoise2(p.x, p.z) * 0.03 + snoise2(p.x*2.7, p.z*2.8) * 0.02 + fabs(snoise2(p.x*5.8, p.z*5.6)) * 0.01;
-	f64_t noi  = snoise2(p.y*4, p.z*4)* 0.16 + snoise2(p.y*8, p.z*8)* 0.08 + snoise2(p.y*16, p.z*16)* 0.04 + snoise2(p.y*32, p.z*32)* 0.02;
+	land += snoise2(p.x, p.z) * 0.03 + snoise2(p.x*2.7, p.z*2.8) * 0.02 + snoise2(p.x*5.8, p.z*5.6) * (p.y * 0.05);
+	float noi  = snoise2(p.y*4, p.z*4)* 0.16 + snoise2(p.y*8, p.z*8)* 0.08 + snoise2(p.y*16, p.z*16)* 0.04 + snoise2(p.y*32, p.z*32)* 0.02;
 	
-	f32_t depth = cracks(xx + noi*0.6, zz * stretch, width, 0.5f);
+	float cosa = cos(lnoise * 0.05);
+	float sina = sin(lnoise * 0.05);
+	float xx = (cosa * p.x + sina * p.z) * scale;
+	float zz = (cosa * p.z - sina * p.x) * scale;
 	
-	noi = p.y - (land + 0.5*depth);
+	float depth = cracks(xx + noi*0.6, zz * stretch, width, 0.5f);
+	
+	noi = p.y - (land + 0.4 * depth);
 	
 	// vary cliff terrain with lower_grass terrain (that also has mountains)
-	const f32_t GMIX = 0.5;
-	f32_t gmix = snoise2(p.x*0.66, p.z*0.66);
+	const float GMIX = 0.5;
+	float gmix = snoise2(p.x*0.66, p.z*0.66) * 0.5 + 0.5;
 	
 	if (gmix > GMIX)
 	{
@@ -356,17 +341,17 @@ f32_t getnoise_grass(vec3 p)
 	return noi;
 }
 
-f32_t getnoise_marsh(vec3 p)
+float getnoise_marsh(vec3 p)
 {
 	p.x *= 0.001;
 	p.z *= 0.001;
-	f32_t n1 = sfreq(p, 0.3) * 0.025 + sfreq(p, 2.5) * 0.0125;
-	f32_t n2 = sfreq(p, 0.4) * 0.025 + sfreq(p, 2.6) * 0.0125;
+	float n1 = sfreq(p, 0.3) * 0.025 + sfreq(p, 2.5) * 0.0125;
+	float n2 = sfreq(p, 0.4) * 0.025 + sfreq(p, 2.6) * 0.0125;
 	
 	// river //
-	const f32_t river_delta = 0.1;
+	const float river_delta = 0.1;
 	
-	f32_t river = fabs(sfreq2d(p, 2.22));
+	float river = std::abs(sfreq2d(p, 2.22));
 	river = (river < river_delta) ? 1.0 - river / river_delta : 0.0;
 	if (n1 + n2 > 0.0 && p.y <= 0.25) river -= (n1 + n2) * 105.0;
 	if (river < 0.0) river = 0.0;
@@ -374,13 +359,13 @@ f32_t getnoise_marsh(vec3 p)
 	// river //
 	
 	// 3d hills
-	f32_t hills = 0.25 + sfreq(p, 0.9) * 0.1 + sfreq(p, 1.9) * 0.04;
-	f32_t slope = hills - 0.1;
+	float hills = 0.25 + sfreq(p, 0.9) * 0.1 + sfreq(p, 1.9) * 0.04;
+	float slope = hills - 0.1;
 	
 	// hill placement
-	f32_t n3 = sfreq(p, 1.4);
+	float n3 = sfreq(p, 1.4);
 	// hill height
-	f32_t height = 0.05 + n1 * 8.0;
+	float height = 0.05 + n1 * 8.0;
 	
 	// noise value
 	n1 = p.y - 0.25 + n1 + n2;
@@ -388,7 +373,7 @@ f32_t getnoise_marsh(vec3 p)
 	if (n3 > hills)
 	{
 		n3 = (n3 - hills) / 0.25;
-		n3 = powf(n3, 0.1);
+		n3 = std::pow(n3, 0.1);
 		n1 -= height * n3;
 		// remove river
 		river = 0.0;
@@ -397,7 +382,7 @@ f32_t getnoise_marsh(vec3 p)
 	{
 		// slope
 		n3 = 1.0 - (hills - n3) / (hills - slope);
-		n1 -= (height - 0.03) * powf(n3, 0.85);
+		n1 -= (height - 0.03) * std::pow(n3, 0.85);
 		// fade river
 		river *= 1.0 - n3 * n3 * n3;
 	}
@@ -406,61 +391,59 @@ f32_t getnoise_marsh(vec3 p)
 	return n1 + river * 0.04; //fabsf(n2) * 8.0;
 }
 
-f32_t getnoise_jungle(vec3 p)
+float getnoise_jungle(vec3 p)
 {
-	f64_t inv_y = 1.0 - p.y;
+	float inv_y = 1.0 - p.y;
 	p.x *= 0.001;
 	p.z *= 0.001;
 	
-	const f64_t noise1 = 1.0, noise_rel1 = 1.0 / 5.0;
-	const f64_t noise2 = 8.0, noise_rel2 = 16.0;
+	const float noise1 = 1.0, noise_rel1 = 1.0 / 5.0;
+	const float noise2 = 8.0, noise_rel2 = 16.0;
 	
-	f64_t n1 = sfreq(p, noise1);
-	f64_t n2 = sfreq(p, noise2);
-	f64_t landscape1 = sfreq2d(p, 0.5);
-	f64_t landscape2 = sfreq2d(p, 0.25);
+	float n1 = sfreq(p, noise1);
+	float n2 = sfreq(p, noise2);
+	float landscape1 = sfreq2d(p, 0.5);
+	float landscape2 = sfreq2d(p, 0.25);
 	
-	vec3 npos  = mul3(&p, noise_rel1);
+	vec3 npos = p * noise_rel1;
 	
-	const f64_t COSN_CURVE = 2.0; // - n2 * n2
-	const f64_t COSN_FAT   = 0.0; // ( (1.0 - p.y) ^ 2.0 ) * 0.25
-	const f64_t COSN_CUTS  = 0.0; // Abs(n2)
+	const float COSN_CURVE = 2.0; // - n2 * n2
+	const float COSN_FAT   = 0.0; // ( (1.0 - p.y) ^ 2.0 ) * 0.25
+	const float COSN_CUTS  = 0.0; // Abs(n2)
 	
-	#define COSN_jun  cosnoise(&npos,  n1, 0.5, 0.5, COSN_CURVE, COSN_FAT, COSN_CUTS)
-	#define COSN_jun2 cosnoise(&npos2, n2, 1.0, 1.0, 3.0, COSN_FAT, COSN_CUTS)
+	#define COSN_jun  cosnoise(npos,  n1, 0.5, 0.5, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_jun2 cosnoise(npos2, n2, 1.0, 1.0, 3.0, COSN_FAT, COSN_CUTS)
 	
-	f64_t ramping = (n1 + 1.0) * 0.5;
+	float ramping = (n1 + 1.0) * 0.5;
 	
 	//  compressed
 	n1 = p.y - (fabs(n1-COSN_jun) * 0.75 + ramp(inv_y, 2.0) * 0.25);
 	
-	n1 += fabs(landscape1 * 0.2) - fabs(landscape2 * 0.2);
+	n1 += std::abs(landscape1 * 0.2) - std::abs(landscape2 * 0.2);
 	
 	if (n1 < 0.0 && n1 > -0.5)
 	{
-		vec3 npos2 = mul3(&p, noise_rel2);
-		
+		vec3 npos2 = p * noise_rel2;
 		n1 += ramp(1.0 - n1 / -0.25, 3.0) * (1.0 + COSN_jun2) * ramping * 0.1;
-		
 	}
 	
 	// ultra-scale down density above clouds
-	const f64_t scaledown = 0.75;
+	const float scaledown = 0.75;
 	if (p.y > scaledown) {
-		f64_t dy = (p.y - scaledown) / (1.0 - scaledown);
+		float dy = (p.y - scaledown) / (1.0 - scaledown);
 		n1 += dy * dy * 1.0;
 	}
 	
 	return n1;
 }
 
-f32_t getnoise_desert(vec3 p)
+float getnoise_desert(vec3 p)
 {
-	p.x *= 2;
-	p.z *= 2;
+	p.x *= 0.001;
+	p.z *= 0.001;
 	
-	f32_t s = barchans(p.x + snoise1(p.z*0.4)*1.0, p.z + snoise2(p.z*0.2, p.x*0.2)*0.3);
-	f32_t n = snoise2(p.x*0.05, p.z*0.05);
+	float s = barchans(p.x + snoise1(p.z*0.4)*1.0, p.z + snoise2(p.z*0.2, p.x*0.2)*0.3);
+	float n = snoise2(p.x*0.05, p.z*0.05);
 	s = 0.3 + n * 0.3 + s * (0.6 + n*0.4) * 0.3;
 	
 	s = p.y - (0.21 + s * 0.4);
@@ -469,15 +452,15 @@ f32_t getnoise_desert(vec3 p)
 	float x = snoise2(p.x * 0.5, p.z * 0.5) + snoise2(p.x * 0.7, p.z * 0.7);
 	x *= 0.5; // normalize
 	
-	const double EDGE = 0.1;
+	const float EDGE = 0.1;
 	
 	if (x > EDGE)
 	{
-		double linear = (x - EDGE) / (1.0 - EDGE);
+		float linear = (x - EDGE) / (1.0 - EDGE);
 		linear = cubic_hermite(linear);
 		
 		// ramp up the value
-		double power = pow(linear, 0.25 - linear * 0.15);
+		float power = std::pow(linear, 0.25 - linear * 0.15);
 		// apply height
 		float height = power * 0.35 + snoise2(p.x * 0.7, p.z * 0.7) * 0.01;
 		
@@ -492,6 +475,5 @@ f32_t getnoise_desert(vec3 p)
 			s -= x * x * height * 0.6;
 		}
 	}
-	
 	return s;
 }

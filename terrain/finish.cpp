@@ -25,5 +25,5 @@ void threaded_finish(genthread_t* gt)
 
 void finishSectors(Generator& gen)
 {
-	gen.generate(threaded_finish, false);
+	gen.generate(threaded_finish, true);
 }

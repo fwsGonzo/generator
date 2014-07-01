@@ -1,5 +1,6 @@
 #include "process.hpp"
 
+#include <library/math/vector.hpp>
 #include <blocks.hpp>
 #include <generator.h>
 #include <genthread.h>
@@ -11,6 +12,8 @@
 #include "objects/mushrooms.hpp"
 #include "objects/volumetrics.hpp"
 #include "noise/simplex1234.h"
+
+using namespace library;
 
 // terrain crosses
 block_t c_autumn[3] = { _GRASS_SHORT, _GRASS_LONG, _PLANT_DRYBROWN };
@@ -33,16 +36,13 @@ block_t terrain_beach [T_TERRAINS]  = { _SANDBEACH,_SANDBEACH,   _SANDBEACH,    
 // ore deposit id
 block_t  depo_ores[NUM_ORES] = { _COAL, _IRON, _GOLD, _REDSTONE, _GREENSTONE, _DIAMOND };
 // ore deposit will not spawn above this height
-f32_t   depo_depth[NUM_ORES] = {  1.0,   0.8,   0.4,     0.2,       0.2,        0.2    };
+float   depo_depth[NUM_ORES] = {  1.0,   0.8,   0.4,     0.2,       0.2,        0.2    };
 // deposition function
 void pp_depositOre(int ore, int* orecount, int x, int y, int z);
 
 
 void areaPostProcess(genthread_t* l_thread)
 {
-	const int miny = 0;
-	const int maxy = GEN_FULLHEIGHT;
-	
 	// world coordinates
 	int wx = l_thread->x;
 	int wz = l_thread->z;
@@ -57,7 +57,7 @@ void areaPostProcess(genthread_t* l_thread)
 	vec3 p;       // world coordinates for noise
 	int dx, dy, dz;
 	block *lastb, *b;
-	block airblock = (block) {0, 0, 0};
+	block airblock; airblock.id = 0;
 	int counter, lastcounter;
 	int air, spcounter, soilcounter;
 	
@@ -75,14 +75,14 @@ void areaPostProcess(genthread_t* l_thread)
 			p.z = l_thread->p.z + (dz - z);
 			
 			// gravel / stone areas
-			f64_t groundtype = snoise2(p.x * 0.001, p.z * 0.001) * 0.6 + 
+			float groundtype = snoise2(p.x * 0.001, p.z * 0.001) * 0.6 + 
 							   snoise2(p.x * 0.02, p.z * 0.02) * 0.4;
 			
 			// get terrain id
 			terrain = flat(dx & (Sector::BLOCKS_XZ-1), 
 				dz & (Sector::BLOCKS_XZ-1)).terrain;
 			
-			lastb = getb(dx, maxy+1, dz); // get top block, just in case (99.99% _AIR)
+			lastb = getb(dx, GEN_FULLHEIGHT+1, dz); // get top block, just in case (99.99% _AIR)
 			if (lastb == 0) lastb = &airblock; // prevent null pointer in this case
 			
 			// start counting from top (pretend really high)
@@ -91,16 +91,9 @@ void areaPostProcess(genthread_t* l_thread)
 			air     = GEN_FULLHEIGHT;
 			spcounter = 0; soilcounter = 0;
 			
-			for (dy = maxy; dy >= miny; dy--)
+			for (dy = GEN_FULLHEIGHT; dy > 0; dy--)
 			{
 				b = getb(dx, dy, dz);
-				
-				// seal bottom :)
-				if (dy == 0)
-				{
-					b->id = _ADMINIUM;
-					continue;
-				}
 				
 				// count soil as we go down, with enough soil
 				// we will convert it directly to stone
@@ -111,7 +104,7 @@ void areaPostProcess(genthread_t* l_thread)
 					
 					// we only count primary blocks produced by generator, 
 					// which are specifically greensoil & sandbeach
-					if ( b->id == _GREENSOIL || isSand(b->id) )
+					if (b->id == _GREENSOIL || isSand(b->id))
 					{
 						soilcounter++;
 						
@@ -149,21 +142,23 @@ void areaPostProcess(genthread_t* l_thread)
 				if (b->id == _GREENSOIL)
 				{
 					if (terrain == T_DESERT)
-					{	// always terrain-dependent soil (desert)
+					{
+						// always terrain-dependent soil (desert)
 						b->id = terrain_soil[terrain];
-						
 					}
 					else if (groundtype > 0.70)
-					{	// convert to gravel instead, in rare instances
+					{
+						// convert to gravel instead, in rare instances
 						b->id = terrain_gravel[terrain];
-						
 					}
 					else if (groundtype < -0.65)
-					{	// convert to stone
+					{
+						// convert to stone
 						b->id = _STONE;
 					}
 					else
-					{	// convert soil to terrain-specific soil (subject to further processing)
+					{
+						// convert soil to terrain-specific soil (subject to further processing)
 						b->id = terrain_soil[terrain];
 					}
 				}
@@ -193,17 +188,17 @@ void areaPostProcess(genthread_t* l_thread)
 								if (terrain == T_SNOW || terrain == T_ICECAP)  // cover with snow
 								{
 									// needs an atmospheric tracer
-									if (air >= GEN_FULLHEIGHT) setb(dx, dy+1, dz, _LOWSNOW, false, 0);
+									if (air >= GEN_FULLHEIGHT) setb(dx, dy+1, dz, _LOWSNOW, false);
 								}
 							}
 							
 						} // test
 						
-						f32_t rand = randf(dx, dy, dz); // TODO: use poisson disc here
+						float rand = randf(dx, dy, dz); // TODO: use poisson disc here
 						
-						/////////////////////////////////////////
-						// create objects, and litter crosses! //
-						/////////////////////////////////////////
+						///-////////////////////////////////////-///
+						///- create objects, and litter crosses -///
+						///-////////////////////////////////////-///
 						
 						if (terrain == T_ICECAP && b->id == _SNOWGRASS)
 						{
@@ -213,7 +208,7 @@ void areaPostProcess(genthread_t* l_thread)
 								
 								if ((dx & distance) == 0  &&  (dz & distance) == 0)
 								{
-									if (snoise2(p.x * 1.8, p.z * 1.8) > 0.25)
+									if (snoise2(p.x * 0.018, p.z * 0.018) > 0.25)
 									{
 										//int height = 8 + randf(dx, dy+1, dz) * 12;
 										
@@ -223,7 +218,7 @@ void areaPostProcess(genthread_t* l_thread)
 									}
 									else if (rand < 0.01)
 									{	// setting a cross using 0 = no overwrite, 0 = facing (crosses don't have facing)
-										setb(dx, dy+1, dz, _FLOWERRED, 0, 0);
+										setb(dx, dy+1, dz, _FLOWERRED, false);
 									}
 								}
 								
@@ -238,7 +233,7 @@ void areaPostProcess(genthread_t* l_thread)
 								
 								if ((x & distance) == 0  &&  (z & distance) == 0)
 								{
-									if (snoise2(p.x * 1.8, p.z * 1.8) > 0.25)
+									if (snoise2(p.x * 0.018, p.z * 0.018) > 0.25)
 									{
 										//int height = 8 + randf(dx, dy+1, dz) * 12;
 										
@@ -249,15 +244,15 @@ void areaPostProcess(genthread_t* l_thread)
 									else if (rand < 0.05)
 									{
 										// grass
-										if (snoise2(p.x * 4.0, p.z * 4.0) > 0.0)
+										if (snoise2(p.x * 0.40, p.z * 0.40) > 0.0)
 										{
-											setb(dx, dy+1, dz, _PLANT_DRYBROWN, 0, 0 );
+											setb(dx, dy+1, dz, _PLANT_DRYBROWN, false);
 										}
 										
 									}
 									else if (rand < 0.01)
 									{	// setting a cross using 0 = no overwrite, 0 = facing (crosses don't have facing)
-										setb(dx, dy+1, dz, _FLOWERRED, 0, 0);
+										setb(dx, dy+1, dz, _FLOWERRED, false);
 									}
 								}
 								
@@ -268,12 +263,9 @@ void areaPostProcess(genthread_t* l_thread)
 						{
 							
 							// autumn
-							if (rand < 0.015 && air > 28) {
-								
-								const int distance = 15;
-								
-								if ((x & distance) == 0  &&  (z & distance) == 0)
-								if (snoise2(p.x * 2.0, p.z * 2.0) < 0.0)
+							if (rand < 0.015 && air > 28)
+							{
+								if (snoise2(p.x * 0.02, p.z * 0.02) < 0.0)
 								{
 									//int height = 8 + randf(dx, dy+1, dz) * 16;
 									
@@ -283,7 +275,7 @@ void areaPostProcess(genthread_t* l_thread)
 								
 							} else if (rand < 0.2) {
 								
-								if (snoise2(p.x * 2.0, p.z * 2.0) > 0.2)
+								if (snoise2(p.x * 0.20, p.z * 0.20) > 0.2)
 								{
 									setb(dx, dy+1, dz, getCross(c_autumn), 0, 0 );
 								}
@@ -294,18 +286,15 @@ void areaPostProcess(genthread_t* l_thread)
 						else if (terrain == T_ISLANDS && b->id == _GREENGRASS_S)
 						{
 							// ministry of icelandic forestry
-							if (rand < 0.00003 && air > 32) {
-								
+							if (rand < 0.00003 && air > 32)
+							{
 								int height = (int)(randf(dx, dy+1, dz) * 15) + 12;
 								if (dy + height < 160)
 									omushStrangeShroom(dx, dy+1, dz, height);
-								
-							} else if (rand < 0.03 && air > 18) {
-								
-								const int distance = 15;
-								
-								if ((x & distance) == 0  &&  (z & distance) == 0)
-								if (snoise2(p.x * 2.5, p.z * 2.5) < 0.0)
+							}
+							else if (rand < 0.03 && air > 18)
+							{
+								if (snoise2(p.x * 0.015, p.z * 0.015) < -0.25)
 								{
 									int height = 8 + randf(dx, dy+1, dz) * 12;
 									if (dy + height < GEN_FULLHEIGHT)
@@ -315,15 +304,15 @@ void areaPostProcess(genthread_t* l_thread)
 										//	ingenTreeA(dx, dy+1, dz, height );
 									}
 								}
-								
-							} else if (rand < 0.4) {
-								
-								if (snoise2(p.x * 4.0, p.z * 4.0) > 0.0)
+							}
+							else if (rand < 0.4)
+							{
+								if (snoise2(p.x * 0.015, p.z * 0.015) > 0.0)
 								{
 									if (rand > 0.075)
-										setb(dx, dy+1, dz, getCrossExt(c_island, 2), 0, 0 );
+										setb(dx, dy+1, dz, getCrossExt(c_island, 2), false);
 									else
-										setb(dx, dy+1, dz, getCross(c_island), 0, 0 );
+										setb(dx, dy+1, dz, getCross(c_island), false);
 								}
 							}
 							
@@ -331,20 +320,20 @@ void areaPostProcess(genthread_t* l_thread)
 						else if (terrain == T_GRASS && b->id == _GREENGRASS_S)
 						{
 							// ministry of green forestry
-							if (rand < 0.00006 && air > 32) {
-								
+							if (rand < 0.0006 && air > 32)
+							{
 								if (dy < 128)
 								{
 									if (rand < 0.00006 * 0.5)
 									{
-										int height = randf(dx, dy+1, dz) * 20 + 40;
+										int height = randf(dx, dy-1, dz) * 20 + 40;
 										if (dy + height < 160)
 											omushWildShroom(dx, dy+1, dz, height);
 										
 									}
 									else
 									{
-										int height = (int)(randf(dx, dy+1, dz) * 15) + 12;
+										int height = randf(dx, dy-1, dz) * 15 + 12;
 										if (dy + height < 160)
 											omushStrangeShroom(dx, dy+1, dz, height);
 									}
@@ -353,23 +342,18 @@ void areaPostProcess(genthread_t* l_thread)
 							}
 							else if (rand < 0.03 && air > 20)
 							{
-								const int distance = 15;
-								
-								if (((x & distance) == 0) && ((z & distance) == 0))
+								if (snoise2(p.x * 0.005, p.z * 0.005) < 0.0)
 								{
-									if (snoise2(p.x * 2.0, p.z * 2.0) < 0.0)
-									{
-										int height = 6 + randf(dx, dy-1, dz) * 14;
-										if (dy + height < 160)
-											otreeHuge(dx, dy+1, dz, height);
-										
-									}
-								} // distance
-								
+									int height = 7 + randf(dx, dy-1, dz) * 14;
+									if (dy + height < 160)
+										otreeHuge(dx, dy+1, dz, height);
+									
+								}
 							}
-							else if (rand < 0.32)
+							else if (rand < 0.28)
 							{
-								if (snoise2(p.x * 2.0, p.z * 2.0) > 0.25)
+								// note: this is an inverse of the otreeHuge noise
+								if (snoise2(p.x * 0.005, p.z * 0.005) > 0.25)
 								{
 									if (rand > 0.075)
 										setb(dx, dy+1, dz, getCrossExt(c_grass, 2), 0, 0 );
@@ -393,7 +377,7 @@ void areaPostProcess(genthread_t* l_thread)
 								
 							} else if (rand < 0.25) {
 								
-								if (snoise2(p.x * 2.0, p.z * 2.0) > 0.0)
+								if (snoise2(p.x * 0.02, p.z * 0.02) > 0.0)
 								{
 									if (rand > 0.1)
 										setb(dx, dy+1, dz, getCrossExt(c_jungle, 5), 0, 0 );
@@ -420,7 +404,7 @@ void areaPostProcess(genthread_t* l_thread)
 							else if (rand < 0.25)
 							{
 								
-								if (snoise2(p.x * 2.0, p.z * 2.0) > -0.15)
+								if (snoise2(p.x * 0.20, p.z * 0.20) > -0.15)
 								{
 									if (rand > 0.1)
 										setb(dx, dy+1, dz, getCrossExt(c_jungle, 5), 0, 0 );
@@ -540,7 +524,7 @@ void areaPostProcess(genthread_t* l_thread)
 						}
 						else if (b->id == _WATER)
 						{
-							// we hit water directly after "air", reset skylight?
+							// we hit water directly after "air"
 							
 						}  // above water, transparent block, counter > N
 						
@@ -596,12 +580,12 @@ void areaPostProcess(genthread_t* l_thread)
 				if (b->id == _STONE)
 				{
 					// deposit only in _STONE
-					f32_t fy = 1.0f - (f32_t)dy / (f32_t)GEN_FULLHEIGHT;
+					float fy = 1.0f - dy / (float) GEN_FULLHEIGHT;
 					
 					#define ORE_CHANCE  (fy * 0.025)
 					fy = ORE_CHANCE;
 					
-					f32_t rand = randf(dx, dy-2, dz);
+					float rand = randf(dx, dy-2, dz);
 					
 					if (rand < fy) {
 						// try to deposit ore
@@ -609,7 +593,7 @@ void areaPostProcess(genthread_t* l_thread)
 						
 						int ore = (int)(rand * rand * NUM_ORES);
 						
-						if (dy < depo_depth[ore] * (f32_t)GEN_FULLHEIGHT) {
+						if (dy < depo_depth[ore] * (float)GEN_FULLHEIGHT) {
 							
 							if (depo_count[ore] > 0) pp_depositOre(ore, &depo_count[ore], dx, dy, dz);
 							
@@ -619,6 +603,9 @@ void areaPostProcess(genthread_t* l_thread)
 				} // ore deposition
 				
 			} // next y
+			
+			// seal the bottom
+			setb(dx, 0, dz, _ADMINIUM, true);
 			
 		} // next z
 		

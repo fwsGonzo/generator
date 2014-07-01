@@ -1,5 +1,6 @@
 #include "terrain_functions.hpp"
 
+#include <library/math/vector.hpp>
 #include "generator.h"
 #include "blocks.hpp"
 #include "vec.h"
@@ -11,7 +12,9 @@
 #define sfreq(v, n) snoise3(v.x * n, v.y * n, v.z * n)
 #define sfreq2d(v, n) snoise2(v.x * n, v.z * n)
 
-void pillars(vec3& p, double frequency, double& noise)
+using namespace library;
+
+void pillars(const vec3& p, float frequency, float& noise)
 {
 	// variable radius
 	float pillarRadiusCurve = 1.0 - pow(1.0 - p.y, 0.5);

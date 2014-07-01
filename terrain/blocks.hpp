@@ -244,6 +244,8 @@ typedef struct
 #define isCross(id) (id >= cross_start && id <= cross_end)
 #define isFluid(id) (id == _WATER || id == _LAVABLOCK)
 #define isLight(id) (id == _TORCH || id == _MOLTENSTONE || id == _LAVABLOCK || id == _REDSTONE || id == _GREENSTONE || id == _FIRE || id == _LANTERN)
+//! \brief a hard/solid block (not air, not transparent and not any special model)
+#define isSolid(id) (id > air_end && id < halfblock_start)
 
 inline bool blockTransparent(block_t id)
 {
@@ -253,11 +255,10 @@ inline bool blockTransparent(block_t id)
 	return false;
 }
 
-class Sector;
 extern void setb(int x, int y, int z, block_t id, block_t facing, bool overwrite = true);
 extern void setb(int x, int y, int z, block_t block, bool overwrite = true);
 extern void setb(int x, int y, int z, block& block, bool overwrite = true);
-//extern void setb(Sector* sector, int x, int y, int z, block_t id, int overwrite, int facing);
+extern block_t getblock(int x, int y, int z);
 extern block* getb(int x, int y, int z);
 extern bool wrapb(int x, int y, int z);  // returns false if blocks are out of 'miniworld' bounds
 

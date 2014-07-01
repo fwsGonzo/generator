@@ -53,6 +53,9 @@ public:
 	void zero();
 	void compress(Sector::sectorblock_t& sb);
 	
+	bool hasBlocks(unsigned char* data);
+	void decompress(unsigned char* data, Sector::sectorblock_t& sb);
+	
 	inline RLEHeader& getHeader()
 	{
 		return rh;
@@ -73,8 +76,23 @@ public:
 		return rh.getPalettes() * sizeof(block_t) + rh.getEntries() * sizeof(RLEEntry);
 	}
 	
+	// total compressed size
+	inline int getDecompressedSize() const
+	{
+		return sizeof(RLEHeader) + getDecompressedDataSize();
+	}
+	// RLE palettes + entries data size
+	inline int getDecompressedDataSize() const
+	{
+		return decomp->getPalettes() * sizeof(block_t) + decomp->getEntries() * sizeof(RLEEntry);
+	}
+	
 private:
+	// for compression
 	RLEHeader rh;
+	// for decompression
+	RLEHeader* decomp;
+	// compression databuffer
 	char* rledata;
 };
 extern RLECompressor rle;

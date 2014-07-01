@@ -1,5 +1,6 @@
 #include "flatpp.hpp"
 
+#include <library/math/vector.hpp>
 #include <blocks.hpp>
 #include <generator.h>
 #include <genthread.h>
@@ -9,6 +10,8 @@
 
 #include <objects/house.hpp>
 #include <objects/trees.hpp>
+
+using namespace library;
 
 block_t flat_grass[6] = { _GRASS_LONG, _GRASS_SHORT, _FLOWERREDMAG, _FLOWERROSE, _FLOWERYELLOW, _FLOWERRED };
 
@@ -100,7 +103,7 @@ void flatPostProcess(genthread_t* l_thread)
 							
 						}
 						
-						f32_t rand = randf(dx, dy, dz); // TODO: use poisson disc here
+						float rand = randf(dx, dy, dz); // TODO: use poisson disc here
 						
 						// create objects!
 						switch (b->id) {

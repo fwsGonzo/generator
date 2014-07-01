@@ -17,42 +17,78 @@ extern void testPP(Generator&);
 extern void flatGen(Generator&);
 extern void flatPP(Generator&);
 
-int main(void)
+void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFolder)
 {
-	logger.open("generator.log");
-	logger << Log::INFO << "* Starting up generator..." << Log::ENDL;
-	
-	const int MINIWORLD_SIZE = 16;
-	const int MINIWORLD_XZ = World::WORLD_CENTER - MINIWORLD_SIZE / 2;
-	world.setCoordinates(MINIWORLD_XZ, MINIWORLD_XZ);
-	sectors.init(MINIWORLD_SIZE);
-	
-	Generator gen(8);
-	
+	//#define TIMING
 	Timer t;
+	world.setCoordinates(wx, wz);
+	
+	/// decompress existing sectors from disk ///
+	Chunks::decompress(outFolder);
 	
 	/// generator world ///
 	t.startNewRound();
 	testGen(gen);
+#ifdef TIMING
 	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+#endif
 	
 	/// post-process world ///
 	t.startNewRound();
 	testPP(gen);
+#ifdef TIMING
 	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+#endif
 	
 	std::cout << "Finishing sectors" << std::endl;
 	t.startNewRound();
 	/// finish sectors (count blocks/lights etc.) ///
 	finishSectors(gen);
+#ifdef TIMING
 	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+#endif
 	
 	/// compress and write sectors to disk ///
-	std::string outFolder = "/home/gonzo/github/cppcraft/Debug/Worlds/test";
-	Chunks::init();
 	Chunks::compress(outFolder);
+}
+
+int main(void)
+{
+	/// generator settings  ///
+	const int SECTORS_AXIS = 18;
+	const int AREA_RADIUS  =  1;
+	/// ------------------- ///
 	
-	int ret = chdir("/home/gonzo/github/cppcraft/Debug/");
+	logger.open("generator.log");
+	logger << Log::INFO << "* Starting up generator..." << Log::ENDL;
+	
+	std::string gameDirectory = "/home/gonzo/github/cppcraft/Debug/";
+	std::string outFolder = gameDirectory + "Worlds/test";
+	
+	sectors.init(SECTORS_AXIS);
+	
+	Generator gen(8);
+	
+	/// initialize chunks backend ///
+	Chunks::init();
+	
+	const int MINIWORLD_XZ  = World::WORLD_CENTER - sectors.getXZ() / 2;
+	const int MINIWORLD_OFS = sectors.getXZ() - World::BORDER * 2;
+	
+	const int area_max = (1 + 2 * AREA_RADIUS) * (1 + 2 * AREA_RADIUS);
+	
+	/// generate part of the world ///
+	int i = 1;
+	for (int x = -AREA_RADIUS; x <= AREA_RADIUS; x++)
+	for (int z = -AREA_RADIUS; z <= AREA_RADIUS; z++)
+	{
+		logger << Log::INFO << "Generating miniworld " << i++ << " of " << area_max << Log::ENDL;
+		
+		generate(gen, MINIWORLD_XZ + x * MINIWORLD_OFS, MINIWORLD_XZ + z * MINIWORLD_OFS, outFolder);
+	}
+	
+	/// start game client ///
+	chdir(gameDirectory.c_str());
 	char* const argv[1] = {0};
 	return execv("cppcraft", argv);
 }

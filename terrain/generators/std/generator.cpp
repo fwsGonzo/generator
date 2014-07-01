@@ -1,47 +1,49 @@
 #include "generator.hpp"
 
+#include <library/math/vector.hpp>
 #include <blocks.hpp>
 #include <generator.h>
 #include <genthread.h>
 #include <random.hpp>
 #include <sectors.hpp>
-#include <vec.h>
 #include <biome/biome.hpp>
 #include <noise/simplex1234.h>
 #include "terrain.hpp"
-#include <math.h>
+#include <cmath>
+
+using namespace library;
 
 /*
 	Simple terrain getter, returns only basic materials
 */
 
-block_t getTerrainComplex(f32_t y, f32_t in_beachhead, f32_t density, f32_t caves)
+block_t getTerrainComplex(float y, float in_beachhead, float density, float caves)
 {
 	/* FOR MAKING CAVES */
 	//if (caves < 0.0) return _STONE;
 	//return _AIR;
 	
-	f32_t cavetresh = 0.0; // distance from air/dense barrier
+	float cavetresh = 0.0; // distance from air/dense barrier
 	if (density > -0.1 && density <= 0.0) cavetresh = 1.0 - density / -0.1;
 	
 	// caves
-	const f32_t cave_lower = 0.0; // underworld cave density treshold
-	const f32_t cave_upper = 0.0; // overworld  cave density treshold
+	const float cave_lower = 0.0; // underworld cave density treshold
+	const float cave_upper = 0.0; // overworld  cave density treshold
 	
 	// lower = 0.0 to waterlevel + beachhead
-	const f32_t stone_lower = -0.1;
-	const f32_t stone_upper = -0.05; // density treshold for stone upper / lower hemisphere
+	const float stone_lower = -0.1;
+	const float stone_upper = -0.05; // density treshold for stone upper / lower hemisphere
 	
-	const f32_t lava_height   = 0.025;
-	const f32_t molten_densdx = 0.01; // difference between stone and cave
-	const f32_t molten_height = 0.025;
+	const float lava_height   = 0.025;
+	const float molten_densdx = 0.01; // difference between stone and cave
+	const float molten_height = 0.025;
 	
 	// middle = waterlevel + beachhead
-	f32_t beachhead  = in_beachhead * 0.025; // sand above water (0.0075 + ...)
-	const f32_t soil_lower = -0.05; // underground soil density
+	float beachhead  = in_beachhead * 0.025; // sand above water (0.0075 + ...)
+	const float soil_lower = -0.05; // underground soil density
 	
 	// upper = waterlevel + beachhead + lower_to_upper
-	const f32_t lower_to_upper  = 0.1;  // transition length from lower to upper
+	const float lower_to_upper  = 0.1;  // transition length from lower to upper
 	
 	if (density < 0.0)
 	{
@@ -65,7 +67,7 @@ block_t getTerrainComplex(f32_t y, f32_t in_beachhead, f32_t density, f32_t cave
 				
 				if (density < cave_lower + molten_densdx)
 				{
-					f32_t deltadens = -(density - cave_lower) / molten_densdx;
+					float deltadens = -(density - cave_lower) / molten_densdx;
 					
 					if (y < (1.0 - deltadens) * molten_height)
 						return _MOLTENSTONE;
@@ -82,7 +84,7 @@ block_t getTerrainComplex(f32_t y, f32_t in_beachhead, f32_t density, f32_t cave
 			if (y >= GEN_WATERLEVEL)
 			{
 				// transitional density for sand to soil
-				f32_t deltay = ( y - GEN_WATERLEVEL ) / beachhead;
+				float deltay = ( y - GEN_WATERLEVEL ) / beachhead;
 				deltay *= deltay;
 				
 				if (deltay > 1.0 - (density / soil_lower) )
@@ -98,7 +100,7 @@ block_t getTerrainComplex(f32_t y, f32_t in_beachhead, f32_t density, f32_t cave
 			// middle hemisphere, dense
 			
 			// transitional density for lower to upper
-			f32_t deltay = ((GEN_WATERLEVEL + beachhead + lower_to_upper) - y) / lower_to_upper;
+			float deltay = ((GEN_WATERLEVEL + beachhead + lower_to_upper) - y) / lower_to_upper;
 			
 			// cave transition lower/upper
 			if (caves < cave_upper * (1.0 - deltay) + cave_lower * deltay)
@@ -142,31 +144,27 @@ void terrainGenerator(genthread_t* l_thread)
 	#define ngrid 8
 	#define ygrid 4 // not yet used
 	
-	const f64_t grid_pfac = Sector::BLOCKS_XZ / (f64_t)ngrid;
+	const float grid_pfac = Sector::BLOCKS_XZ / (float)ngrid;
 	// noise data
-	f32_t noisearray[ngrid+1][ngrid+1];
-	f32_t cavesarray[ngrid+1][ngrid+1];
+	float noisearray[ngrid+1][ngrid+1];
+	float cavesarray[ngrid+1][ngrid+1];
 	// biome data
 	biome_t biomearray[ngrid+1][ngrid+1];
 	// value data
-	f32_t beachhead[ngrid+1][ngrid+1];
+	float beachhead[ngrid+1][ngrid+1];
 	
 	// some variables
 	int wx = l_thread->x, wz = l_thread->z;
-	int x, y, z, bx, bz;
-	f64_t fx, fz;
-	vec3 p;  // position vec3
+	vec3 p; // world position
 	
 	// retrieve data for noise biome interpolation, and heightmap
-	for (x = 0; x <= ngrid; x++)
+	for (int x = 0; x <= ngrid; x++)
 	{
-		fx = (f64_t)x * grid_pfac;
-		p.x = l_thread->p.x + fx;
+		p.x = l_thread->p.x + x * grid_pfac;
 		
-		for (z = 0; z <= ngrid; z++)
+		for (int z = 0; z <= ngrid; z++)
 		{
-			fz = (f64_t)z * grid_pfac;
-			p.z = l_thread->p.z + fz;
+			p.z = l_thread->p.z + z * grid_pfac;
 			
 			// don't scale p.x and p.z!!!!!!!!!!!!
 			biomearray[x][z] = biomeGen(p.x, p.z);
@@ -180,25 +178,22 @@ void terrainGenerator(genthread_t* l_thread)
 	
 	Sector* s = nullptr;
 	int by;  // local sector coordinate (0 .. 7)
-	f32_t density, caves, beach;
+	float density, caves, beach;
 	block_t id = _AIR;
 	
-	f32_t frx, frz; // internal fractionals
-	f32_t w0, w1;   // interpolation weights
-	
 	// not including 0
-	for (y = GEN_FULLHEIGHT; y > 0; y--)
+	for (int y = GEN_FULLHEIGHT; y > 0; y--)
 	{
 		// world vec.y
-		p.y = (f64_t)y * (1.0 / (f64_t)GEN_FULLHEIGHT);
+		p.y = y / (float)GEN_FULLHEIGHT;
 		
-		for (x = 0; x <= ngrid; x++)
+		for (int x = 0; x <= ngrid; x++)
 		{
-			p.x = l_thread->p.x + (f64_t)x * grid_pfac;
+			p.x = l_thread->p.x + x * grid_pfac;
 			
-			for (z = 0; z <= ngrid; z++)
+			for (int z = 0; z <= ngrid; z++)
 			{
-				p.z = l_thread->p.z + (f64_t)z * grid_pfac;
+				p.z = l_thread->p.z + z * grid_pfac;
 				
 				biomeptr = &biomearray[x][z];
 				noisearray[x][z] = 0.0;
@@ -250,17 +245,19 @@ void terrainGenerator(genthread_t* l_thread)
 		
 		// set generic blocks using getTerrainSimple()
 		// interpolate using linear bore-a-thon
+		float frx, frz; // internal fractionals
+		float w0, w1;   // interpolation weights
 		
-		for (x = 0; x < Sector::BLOCKS_XZ; x++)
+		for (int x = 0; x < Sector::BLOCKS_XZ; x++)
 		{
-			fx = x / (f32_t)Sector::BLOCKS_XZ * ngrid;
-			bx = (int)fx; // start x
+			float fx = x / (float)Sector::BLOCKS_XZ * ngrid;
+			int bx = (int)fx; // start x
 			frx = fx - bx;
 			
-			for (z = 0; z < Sector::BLOCKS_XZ; z++)
+			for (int z = 0; z < Sector::BLOCKS_XZ; z++)
 			{
-				fz = z / (f32_t)Sector::BLOCKS_XZ * ngrid;
-				bz = (int)fz;  // integral
+				float fz = z / (float)Sector::BLOCKS_XZ * ngrid;
+				int bz = (int)fz;  // integral
 				frz = fz - bz; // fractional
 				
 				// density weights //

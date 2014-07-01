@@ -10,6 +10,7 @@ class World
 public:
 	void setCoordinates(wcoord_t wx, wcoord_t wz);
 	
+	static const int BORDER = 3;
 	static const wcoord_t WORLD_SIZE   = 268435456;
 	static const wcoord_t WORLD_CENTER = WORLD_SIZE / 2;
 	

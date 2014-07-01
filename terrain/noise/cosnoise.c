@@ -1,10 +1,12 @@
 #include "cosnoise.h"
-#include <math.h>
+#include <cmath>
 
-const double PI = 3.141592653589793;
+using namespace library;
 
-static __inline double cosntri(double *p, double x, double y, double z) {
+const float PI = 3.141592653589793;
 
+inline float cosntri(float* p, float x, float y, float z)
+{
 return( p[0] * (1-x) * (1-y) * (1-z) +  // 0,0,0
 		p[1] *   x   * (1-y) * (1-z) +  // 1,0,0
 		p[2] * (1-x) *   y   * (1-z) +  // 0,1,0
@@ -15,8 +17,8 @@ return( p[0] * (1-x) * (1-y) * (1-z) +  // 0,0,0
 		p[7] *   x   *   y   *   z   ); // 1,1,1
 }
 
-static __inline double cosntri_const1(double *p, double y) {
-
+inline float cosntri_const1(float* p, float y)
+{
 return  ( ( p[0] * (1-y)  +  // 0,0,0
 			p[1] * (1-y)  +  // 1,0,0
 			p[2] *   y    +  // 0,1,0
@@ -28,7 +30,8 @@ return  ( ( p[0] * (1-y)  +  // 0,0,0
 			* 0.25  );
 }
 
-static __inline double cosntri_const2(double *p) {
+inline float cosntri_const2(float *p)
+{
 	return  ( p[0] + p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + p[7] ) * 0.125;
 }
 
@@ -37,8 +40,8 @@ static __inline double cosntri_const2(double *p) {
 // cuts -- -1.0 to 1.0, and is otherwise undefined
 // fatness increases or decreases bulginess
 
-double cosnoise(vec3* v, double density, double scale_xz, double scale_y, 
-						double curve, double fatness, double cuts)
+float cosnoise(const vec3& v, float density, float scale_xz, float scale_y, 
+							  float curve, float fatness, float cuts)
 {
 	
 	#define size_x  scale_xz
@@ -46,30 +49,30 @@ double cosnoise(vec3* v, double density, double scale_xz, double scale_y,
 	#define size_y  scale_y
 	
 	// cheap reusage of slope
-	double slope = v->y * size_y + density;
+	float slope = v.y * size_y + density;
 	
 	// 2d shearing:
-	double x = v->x * size_x + slope;
-	double z = v->z * size_z + slope;
+	float x = v.x * size_x + slope;
+	float z = v.z * size_z + slope;
 	
 	// r * r for sloping
 	#define cosip(fx) (0.5 + cos(( fx ) * PI) * 0.5)
 	
 	// real slope
 	slope = curve + density * density * fatness;
-	// weights
-	double weights[8];
 	size_x += size_x; // size_x == size_z
 	
+	// weights
+	float weights[8];
 	// Optimized formula:
-	weights[0] = pow( cosip(x - size_x - size_y), slope);
-	weights[1] = pow( cosip(x - size_y)         , slope);
-	weights[2] = pow( cosip(x - size_x + size_y), slope);
-	weights[3] = pow( cosip(z - size_y)         , slope);
-	weights[4] = pow( cosip(z + size_x - size_y), slope);
-	weights[5] = pow( cosip(z + size_y)         , slope);
-	weights[6] = pow( cosip(x + size_y)         , slope);
-	weights[7] = pow( cosip(z + size_x + size_y), slope);
+	weights[0] = std::pow( cosip(x - size_x - size_y), slope);
+	weights[1] = std::pow( cosip(x - size_y)         , slope);
+	weights[2] = std::pow( cosip(x - size_x + size_y), slope);
+	weights[3] = std::pow( cosip(z - size_y)         , slope);
+	weights[4] = std::pow( cosip(z + size_x - size_y), slope);
+	weights[5] = std::pow( cosip(z + size_y)         , slope);
+	weights[6] = std::pow( cosip(x + size_y)         , slope);
+	weights[7] = std::pow( cosip(z + size_x + size_y), slope);
 	
 	// simplified solution for centered y
 	if (cuts == 0)

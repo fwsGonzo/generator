@@ -42,7 +42,7 @@ int volumetricDepth(int x, int y, int z, int depth)
 
 void volumetricFillDown(int x, int y, int z, int id, int depth, int travel)
 {
-	if (depth <= 0 || travel == 0) return;
+	if (depth <= 0 || travel == 0 || y < 0) return;
 	travel--;
 	
 	block* b;

@@ -1,12 +1,15 @@
 #include "trees.hpp"
 
+#include <library/math/vector.hpp>
 #include "blocks.hpp"
 #include "generator.h"
 #include "vec.h"
 #include "helpers.hpp"
 #include "random.hpp"
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
+
+using namespace library;
 
 void otreeSphere(int gx, int gy, int gz)
 {
@@ -62,12 +65,12 @@ void otreeSabal(int gx, int gy, int gz, int height)
 	const float straightness = 1.5; // higher number = straighter stem
 	
 	// make stem
-	vec3 dir = (vec3) { randf(gx + 1, gy, gz - 1), straightness, randf(gx - 1, gy, gz + 1) };
-	makenorm3v(&dir); // from 0.0->1.0 to -1.0->1.0
-	norm3v(&dir);     // normalize
+	vec3 dir(randf(gx + 1, gy, gz - 1), straightness, randf(gx - 1, gy, gz + 1));
+	dir = dir * 2.0 - vec3(1.0); // make -1.0 to 1.0
+	dir.normalize();
 	
 	// starting ray
-	vec3 ray = (vec3) { (double)x, (double)y, (double)z };
+	vec3 ray(x, y, z);
 	
 	float dy;
 	for (y = 0; y < height; y++) {
@@ -82,23 +85,23 @@ void otreeSabal(int gx, int gy, int gz, int height)
 	
 	// make branches/leafs
 	int n, l;
-	vec3 plusy = (vec3) {0, 1, 0};
+	vec3 plusy(0, 1, 0);
 	
 	for (n = 0; n < rays; n++)
 	{
 		// actual ray
-		ray = (vec3) { x + 0.5, (double)y, z + 0.5 };
+		ray = vec3(x + 0.5, y, z + 0.5);
 		// create direction
-		dir = (vec3) { randf(x + n, y - n * 31, gz - n * 31), 1.0, randf(x + n * 31, y + n * 31, z - n) };
-		makenorm3v(&dir); // from 0.0->1.0 to -1.0->1.0
-		norm3v(&dir);     // normalize
+		dir = vec3(randf(x + n, y - n * 31, gz - n * 31), 1.0, randf(x + n * 31, y + n * 31, z - n));
+		dir = dir * 2.0 - vec3(1.0); // make -1.0 to 1.0
+		dir.normalize();
 		
 		// ignore rays that are too close to +y vector
-		if (dot3(&dir, &plusy) < 0.9)
+		if (dir.dot(plusy) < 0.9)
 		{
 			for(l = 0; l < leaflen; l++)
 			{
-				add3v(&ray, &dir, 1.0);
+				ray += dir;
 				setb(ray.x, ray.y, ray.z, _LEAF_LEAFS, 0, 0);
 				dir.y -= gravity;
 			}
@@ -205,8 +208,8 @@ void otreeHugeBranch(int gx, int gy, int gz, float rad, int length)
 	int n = 0;
 	while (fabs(jitter_x) + fabs(jitter_z) < minjitter)
 	{
-		jitter_x = randf(gx + n, gy+77, gz+53) * maxjitter - maxjitter * 0.5;
-		jitter_z = randf(gx - n, gy+77, gz-53) * maxjitter - maxjitter * 0.5;
+		jitter_x = randf(gx,  n, gz+53) * maxjitter - maxjitter * 0.5;
+		jitter_z = randf(gx, -n, gz-53) * maxjitter - maxjitter * 0.5;
 		n++;
 	}
 	
@@ -257,7 +260,7 @@ void otreeHugeBranch(int gx, int gy, int gz, float rad, int length)
 
 void otreeHuge(int gx, int gy, int gz, int height)
 {
-	if (coretest(gx, gy, gz, 1) == 0) return;
+	if (coretest(gx, gy, gz, 2, 2, height) == false) return;
 	
 	int rootrad = height * 0.4;
 	int midrad  = height * 0.25;
@@ -273,8 +276,8 @@ void otreeHuge(int gx, int gy, int gz, int height)
 	float dx = gx, dy, dz = gz;
 	float y, rad0 = 0.0;
 	
-	for (y = 0.0; y < height; y += 0.5) {
-		
+	for (y = 0.0; y < height; y += 0.5)
+	{
 		if (y < trunk)
 		{	// root S-curve
 			dy = y / (float)trunk;
@@ -299,7 +302,7 @@ void otreeHuge(int gx, int gy, int gz, int height)
 		if (fabsf(jitter_z) < minjitter) jitter_z = randf(dx-31, gy+y+77, dz) * maxjitter - maxjitter * 0.5;
 		
 	}
-	rad0 *= 0.6;
+	rad0 *= 0.65;
 	
 	otreeHugeBranch(dx-1, gy+y-1, dz  , rad0, branchlength);
 	otreeHugeBranch(dx+1, gy+y-1, dz  , rad0, branchlength);

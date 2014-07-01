@@ -44,8 +44,12 @@ private:
 #define catmull(p, x) ( p[1] + 0.5 * x*( p[2] - p[0] + x*( 2.0 * p[0] - 5.0*p[1] + 4.0*p[2] - p[3] + x*( 3.0 * (p[1] - p[2]) + p[3] - p[0]) ) ) )
 
 // standard stuff
-#define mix(a, b, m) ((1.0 - m) * (a) + (m) * (b))
 #define FASTFLOOR(x) ( ((x)>0) ? ((int)x) : (((int)x)-1) )
+
+inline float mix(float a, float b, float level)
+{
+	return a * (1.0 - level) + b * level;
+}
 
 // biomes / flatland data
 typedef struct cl_rgb {
@@ -63,7 +67,7 @@ typedef struct cl_rgba {
 
 inline unsigned int toColor(const cl_rgb& col)
 {
-	return (col.r) + (col.g << 8) + (col.b << 16);
+	return (col.r) + (col.g << 8) + (col.b << 16) + (255 << 24);
 }
 inline cl_rgb toColor(unsigned int col)
 {

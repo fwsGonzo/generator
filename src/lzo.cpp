@@ -53,7 +53,7 @@ lzo_uint LZO::getDataLength()
 bool LZO::compress1x(lzo_bytep data, int datalen)
 {
 	// compress n (to n + nlen) into compression_buffer
-	// lzobuffer.compression_length is the resulting compressed size
+	// compression_length is the resulting compressed size
 	return lzo1x_1_15_compress(
 		data, 
 		datalen, 
@@ -76,7 +76,7 @@ bool LZO::optimize1x(lzo_bytep data, int datalen)
 bool LZO::decompress1x(lzo_bytep data, int datalen)
 {
 	// decompresses lzo1x compressed data
-	// lzobuffer.compression_length is the resulting uncompressed size
+	// compression_length is the resulting uncompressed size
 	return lzo1x_decompress(
 		data, 
 		datalen, 
@@ -89,7 +89,7 @@ bool LZO::decompress1x(lzo_bytep data, int datalen)
 bool LZO::compress2a(lzo_bytep data, int datalen)
 {
 	// compress n (to n + nlen) into compression_buffer
-	// lzobuffer.compression_length is the resulting compressed size
+	// compression_length is the resulting compressed size
 	return lzo2a_999_compress(
 		data, 
 		datalen, 
@@ -100,8 +100,8 @@ bool LZO::compress2a(lzo_bytep data, int datalen)
 }
 bool LZO::decompress2a(lzo_bytep data, int datalen)
 {
-	// decompresses lzo2a compressed data
-	// lzobuffer.compression_length is the resulting uncompressed size
+	// decompresses data into compression_buffer
+	// compression_length is the resulting uncompressed size
 	return lzo2a_decompress(
 		data, 
 		datalen, 

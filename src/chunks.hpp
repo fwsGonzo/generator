@@ -14,6 +14,7 @@ public:
 	
 	static void init();
 	static void compress(const std::string& outputFolder);
+	static void decompress(const std::string& outputFolder);
 	
 	static std::string getChunkBaseFilename(int x, int z);
 	static std::string getChunkBaseFilename(Sector& sector);

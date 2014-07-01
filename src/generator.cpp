@@ -43,15 +43,18 @@ void Generator::generate(genfunc_t genfunc, bool border)
 		return;
 	}
 	
-	double fx = world.getWorldX() - World::WORLD_CENTER;
+	const int B1 = (border) ? 0 : World::BORDER;
+	const int B2 = sectors.getXZ()-B1;
+	
+	double fx = world.getWorldX() + B1 - World::WORLD_CENTER;
 	fx *= Sector::BLOCKS_XZ;
 	
-	for (int x = 0; x < sectors.getXZ(); x++)
+	for (int x = B1; x < B2; x++)
 	{
-		double fz = world.getWorldZ() - World::WORLD_CENTER;
+		double fz = world.getWorldZ() + B1 - World::WORLD_CENTER;
 		fz *= Sector::BLOCKS_XZ;
 		
-		for (int z = 0; z < sectors.getXZ(); z++)
+		for (int z = B1; z < B2; z++)
 		{
 			// start next thread
 			genthread_t gt;

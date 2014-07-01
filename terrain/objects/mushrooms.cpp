@@ -8,8 +8,6 @@
 #include <cstdlib>
 #include <math.h>
 
-typedef unsigned short block_t;
-
 void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top2, block_t mat_inside)
 {
 	float stretch_y = 0.75;
@@ -19,15 +17,16 @@ void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top
 	float rad, fdx, fdy, fdz;
 	
 	// block with special from 0 to 15
-	block mat = (block) { 0, 0, (block_t)(randf(x, y+11, z) * 16) };
+	block mat; mat.id = 0; mat.facing = 0;
+	mat.special = randf(x, y-11, z) * 16;
+	// chance for speckle dot material
+	const float speckle_chance = 0.05;
 	
-	int dx, dy, dz;
-	
-	for (dx = -radius; dx <= radius; dx++)
+	for (int dx = -radius; dx <= radius; dx++)
 	{
-		for (dz = -radius; dz <= radius; dz++)
+		for (int dz = -radius; dz <= radius; dz++)
 		{
-			for (dy = -4; dy <= radius; dy++)
+			for (int dy = -4; dy <= radius; dy++)
 			{
 				fdx = (float)(dx * dx);
 				fdy = (float)dy + ofs_y; fdy *= fdy;
@@ -39,7 +38,7 @@ void omushHood(int x, int y, int z, int radius, block_t mat_top, block_t mat_top
 					if (rad >= radius * 0.95)
 					{
 						mat.id = mat_top;
-						if ((int)(randf(x+dx, y+dy, z+dz) * 32.0) == 0) mat.id = mat_top2;
+						if (randf(x+dx, y+dy, z+dz) < speckle_chance) mat.id = mat_top2;
 					}
 					else
 					{
@@ -64,6 +63,9 @@ void omushWildShroom(int x, int y, int z, int height)
 	float lowrad = randf(x, z, y) * 4 + 8;
 	float toprad = lowrad * 0.4;
 	float currad = 0;
+	
+	//! we want a good radius of 4 for a good platform to stand on
+	if (coretest(x, y, z, 2, 3, height) == false) return;
 	
 	const float jitter = 2.0;
 	const float interpolback = 0.05;
@@ -102,6 +104,9 @@ void omushStrangeShroom(int x, int y, int z, int height)
 	float toprad = lowrad * 0.4;
 	float currad = 0;
 	
+	//! we want a good radius of 3 for a good platform to stand on
+	if (coretest(x, y, z, 2, 3, height) == false) return;
+	
 	const float jitter = 1.0;
 	const float interpolback = 0.05;
 	float jitter_x = randf(x+3, y+5, z-4) * jitter - jitter * 0.5;
@@ -133,9 +138,11 @@ void omushStrangeShroom(int x, int y, int z, int height)
 	float inner_rad, shiftup;
 	float dist;
 	
-	const int speckle_chance = 8;
+	const float speckle_chance = 0.05;
 	
-	block mat = (block) { 0, 0, (block_t)(randf(x, y+13, z) * 16) };
+	// the block material used
+	block mat; mat.id = 0; mat.facing = 0;
+	mat.special = randf(x, y-11, z) * 16;
 	
 	const float shift_strength       = 3.0;
 	const float shift_top_slope      = 0.5;
@@ -181,7 +188,7 @@ void omushStrangeShroom(int x, int y, int z, int height)
 						{	// undertop
 							mat.id = _GIANTSHROOMUNDERTOP;
 						}
-						else if ( (int)(randf(dx+hx, y+dy, dz+hz) * speckle_chance) == 0)
+						else if (randf(dx+hx, y+dy, dz+hz) < speckle_chance)
 						{	// specled top
 							mat.id = _GIANTSHROOMTOPSPECLE;
 						}

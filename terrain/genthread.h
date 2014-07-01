@@ -6,7 +6,7 @@
 typedef struct genthread_t
 {
 	int x, z;
-	vec3 p;
+	library::vec3 p;
 } genthread_t;
 
 #endif

@@ -67,7 +67,7 @@ void preProcess(genthread_t* l_thread)
 							// we hit soil, and at least some air
 							if (b->id == _GREENSOIL && air > 3)
 							{
-								f32_t rand = randf(dx, dy, dz);
+								float rand = randf(dx, dy, dz);
 								// fill potential volume (above)
 								if (rand > 0.9)
 								{

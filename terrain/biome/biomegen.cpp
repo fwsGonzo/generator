@@ -55,9 +55,7 @@ biome_t biomeGen(double gx, double gy)
 {
 	biome_t biome;
 	
-	
-	int biomeValue = 18;
-	
+	int biomeValue = 4;
 	biome.b[0] = biome.b[1] = biome.b[2] = biome.b[3] = biomeValue;
 	biome.w[0] = 1.0;
 	biome.w[1] = biome.w[2] = biome.w[3] = 0.0;

@@ -1,17 +1,20 @@
 #ifndef NOISE_HPP
 #define NOISE_HPP
 
-#include "../../vec.h"
+namespace library
+{
+	class vec3;
+}
 
-extern f32_t getnoise_caves(vec3 p);
+extern float getnoise_caves(library::vec3 p);
 
-extern f32_t getnoise_icecap(vec3 p);
-extern f32_t getnoise_snow(vec3 p);
-extern f32_t getnoise_autumn(vec3 p);
-extern f32_t getnoise_islands(vec3 p);
-extern f32_t getnoise_grass(vec3 p);
-extern f32_t getnoise_marsh(vec3 p);
-extern f32_t getnoise_jungle(vec3 p);
-extern f32_t getnoise_desert(vec3 p);
+extern float getnoise_icecap(library::vec3 p);
+extern float getnoise_snow(library::vec3 p);
+extern float getnoise_autumn(library::vec3 p);
+extern float getnoise_islands(library::vec3 p);
+extern float getnoise_grass(library::vec3 p);
+extern float getnoise_marsh(library::vec3 p);
+extern float getnoise_jungle(library::vec3 p);
+extern float getnoise_desert(library::vec3 p);
 
 #endif

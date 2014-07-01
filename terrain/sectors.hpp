@@ -73,7 +73,6 @@ class Sectors
 {
 public:
 	static const int SECTORS_Y  = 32;
-	static const int BORDER     = 2;
 	static const int WATERLEVEL = 8; // water sectorlevel
 	static const int TOP_BLOCK  = SECTORS_Y * Sector::BLOCKS_Y - 1;
 	
@@ -105,7 +104,9 @@ extern Sectors sectors;
 class Flatland
 {
 public:
+	// number of colors in flatland data
 	static const int TERRAIN_COLORS = 8;
+	// the terrain color datatype
 	typedef unsigned int color_t;
 	
 	typedef struct flatdata_t
@@ -119,11 +120,17 @@ public:
 	
 	inline flatdata_t& operator() (int x, int z)
 	{
-		return data[x][z];
+		return fdata[x][z];
 	}
 	
 private:
-	flatdata_t data[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
+	flatdata_t fdata[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
+	
+public:
+	// the (decompressed) file record size of a flatland-sector
+	static const int FLATLAND_SIZE = sizeof(fdata);
+	
+	friend class Compressor;
 };
 
 class Flatlands

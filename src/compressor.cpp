@@ -13,7 +13,7 @@ using namespace library;
 Compressor compressor;
 LZO        compr_lzo;
 
-static const int COMPRESSOR_COLUMN_BYTES = sizeof(Flatland) +  Sectors::SECTORS_Y * sizeof(Sector::sectorblock_t);
+static const int COMPRESSOR_COLUMN_BYTES = sizeof(Flatland::FLATLAND_SIZE) +  Sectors::SECTORS_Y * sizeof(Sector::sectorblock_t);
 
 struct compressed_datalength_t
 {
@@ -25,7 +25,7 @@ char* compressor_data;
 
 int compressor_column_bytes_byheight(int h)
 {
-	return sizeof(Flatland) + h * sizeof(Sector::sectorblock_t);
+	return sizeof(Flatland::FLATLAND_SIZE) + h * sizeof(Sector::sectorblock_t);
 }
 
 void Compressor::init()
@@ -36,13 +36,17 @@ void Compressor::init()
 	compressor_data = new char[COMPRESSOR_COLUMN_BYTES];
 }
 
+inline unsigned int getCompressedHeaderPosition(int dx, int dz)
+{
+	return (1 +  dx * Chunks::CHUNK_SIZE  +  dz) * sizeof(int);
+}
+
 void Compressor::write(std::fstream& ff, int x, int z)
 {
 	const int dx = (world.getWorldX() + x) & (Chunks::CHUNK_SIZE-1);
 	const int dz = (world.getWorldZ() + z) & (Chunks::CHUNK_SIZE-1);
 	
-	const unsigned int compressed_header_size = (1 + Chunks::CHUNK_SIZE * Chunks::CHUNK_SIZE) * sizeof(int);
-	const unsigned int compressed_header_posi = (1 +  dx * Chunks::CHUNK_SIZE  +  dz) * sizeof(int);
+	static const unsigned int compressed_header_size = (1 + Chunks::CHUNK_SIZE * Chunks::CHUNK_SIZE) * sizeof(int);
 	
 	unsigned int currentpos;
 	ff.seekg(0);
@@ -57,7 +61,7 @@ void Compressor::write(std::fstream& ff, int x, int z)
 		currentpos = compressed_header_size;
 	}
 	
-	int position = compressed_header_posi;
+	int position = getCompressedHeaderPosition(dx, dz);
 	
 	// write current position to header
 	ff.seekp(position);
@@ -150,3 +154,89 @@ void Compressor::write(std::fstream& ff, int x, int z)
 	ff.seekp(0);
 	ff.write((char*) &currentpos, sizeof(currentpos));
 }
+
+void Compressor::load(std::ifstream& File, int x, int z)
+{
+	const int dx = (world.getWorldX() + x) & (Chunks::CHUNK_SIZE-1);
+	const int dz = (world.getWorldZ() + z) & (Chunks::CHUNK_SIZE-1);
+	
+	unsigned int position = getCompressedHeaderPosition(dx, dz);
+	File.seekg(position);
+	
+	unsigned int currentpos = 0;
+	File.read( (char*) &currentpos, sizeof(currentpos) );
+	if (!File)
+	{
+		File.clear();
+		currentpos = 0;
+	}
+	
+	// no record in file
+	if (currentpos == 0)
+	{
+		// clear all sectors in column
+		Sector* sbase = &sectors(x, z);
+		for (int y = 0; y < Sectors::SECTORS_Y; y++)
+			sbase[y].clear();
+		// exit immediately
+		return;
+	} // position = 0
+	
+	// read datalength
+	compressed_datalength_t datalength;
+	
+	File.seekg(currentpos);
+	File.read( (char*) &datalength, sizeof(compressed_datalength_t) );
+	
+	// go past first struct
+	File.seekg(currentpos+sizeof(compressed_datalength_t));
+	// read entire compressed block
+	File.read((char*) compressor_data, datalength.lzoSize);
+	
+	// decompress data
+	if (compr_lzo.decompress2a((lzo_bytep) compressor_data, datalength.lzoSize) == false)
+	{
+		logger << Log::ERR << "Compressor::decompress(): Failed to decompress data" << Log::ENDL;
+		return;
+	}
+	
+	lzo_bytep cpos = compr_lzo.getData();
+	
+	// copy over flatland struct
+	memcpy (flatlands(x, z).fdata, cpos, Flatland::FLATLAND_SIZE);
+	
+	// move to first sectorblock
+	cpos += Flatland::FLATLAND_SIZE;
+	
+	Sector* sbase = &sectors(x, z);
+	
+	for (int y = 0; y < Sectors::SECTORS_Y; y++)
+	{
+		if (y < datalength.sectors)
+		{
+			// check if any blocks are present
+			if (rle.hasBlocks(cpos))
+			{
+				// copy data to engine side
+				if (sbase[y].hasBlocks() == false)
+					sbase[y].createBlocks();
+				
+				// decompress directly onto sectors sectorblock
+				rle.decompress(cpos, *sbase[y].blocks);
+			}
+			else
+			{	// had no blocks, just null it
+				sbase[y].clear();
+			}
+			
+			// go to next RLE compressed sector
+			cpos += rle.getDecompressedSize();
+		}
+		else
+		{	// out of bounds, just null it
+			sbase[y].clear();
+		}
+		
+	} // y
+	
+} // loadCompressedColumn

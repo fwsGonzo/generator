@@ -57,6 +57,23 @@ block* getb(int x, int y, int z)
 	}
 	return (block*) &airblock;
 }
+block_t getblock(int x, int y, int z)
+{
+	Sector* sector = spiderwrap(x, y, z);
+	if (sector)
+	{
+		if (sector->hasBlocks())
+		{
+			return sector[0](x, y, z);
+		}
+		// assume sectors without blocks have air
+		return _AIR;
+	}
+	// below the world, everything is adminium
+	if (y <= 0) return _ADMINIUM;
+	// otherwise, its just air...
+	return _AIR;
+}
 
 void setb(int x, int y, int z, block_t id, block_t facing, bool overwr)
 {

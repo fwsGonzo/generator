@@ -1,60 +1,71 @@
 #include "helpers.hpp"
 
-
-#include "blocks.hpp"
 #include "generator.h"
 #include "random.hpp"
 #include <cmath>
 
-using namespace std;
-
 int ofacing(int dx, int dz)
 {	// +z = 0 (front), -z = 1 (back), +x = 2 (right), -x = 3 (left)
-	if (abs(dx) > abs(dz)) {
-		if (dx > 0) return 2; else return 3;
+	if (std::abs(dx) > std::abs(dz))
+	{
+		return (dx > 0) ? 2 : 3;
 	} else {
-		if (dz > 0) return 0; else return 1;
+		return (dz > 0) ? 0 : 1;
 	}
 }
 int ofacingNeg(int dx, int dz)
 {	// note: this function is OPPOSITE and only to be used with negated blocks (slopes)
-	if (abs(dx) > abs(dz)) {
-		if (dx > 0) return 3; else return 2;
+	if (std::abs(dx) > std::abs(dz))
+	{
+		return (dx > 0) ? 3 : 2;
 	} else {
-		if (dz > 0) return 1; else return 0;
+		return (dz > 0) ? 1 : 0;
 	}
 }
 
-bool coretest(int x, int y, int z, int rad)
+// checks if there is a platform for placing something somewhere
+// check in a square that there is _AIR from y and above
+// and check that there is solid ground at y-1
+bool coretest(int x, int y, int z, int ground_rad, int air_rad, int height)
 {
-	int dx, dy, dz;
-	block* b;
-	
-	for (dx = x - rad; dx < x + rad; dx++)
-	for (dz = z - rad; dz < z + rad; dz++)
+	int maxrad = ground_rad * ground_rad;
+	for (int dx = -ground_rad; dx <= ground_rad; dx++)
+	for (int dz = -ground_rad; dz <= ground_rad; dz++)
 	{
-		for (dy = y; dy < y + 4; dy++)
+		if (dx*dx + dz*dz <= maxrad)
 		{
-			// same-level (exit when not AIR)
-			b = getb(dx, dy, dz); if (!b) return false;
-			if (b->id != _AIR) return false;
+			// ground test: exit when AIR
+			block_t block = getblock(x + dx, y-1, z + dz);
+			if (block <= air_end || block >= halfblock_start) return false;
 		}
-		// below (exit when AIR)
-		b = getb(dx, y-1, dz); if (!b) return false;
-		if (b->id == _AIR) return false;
+	}
+	
+	for (int dy = 0; dy < height; dy++)
+	{
+		maxrad = air_rad * air_rad;
+		for (int dx = -air_rad; dx <= air_rad; dx++)
+		for (int dz = -air_rad; dz <= air_rad; dz++)
+		{
+			if (dx*dx + dz*dz <= maxrad)
+			{
+				// air test: exit when not AIR or fluid
+				block_t block = getblock(x + dx, y + dy, z + dz);
+				if (isSolid(block) || isFluid(block)) return false;
+			}
+		}
 	}
 	return true;
 }
 
 void downSpider(int x, int y, int z, block_t id, int tries)
 {
-	block* currentBlock = getb(x, y, z);
-	if (currentBlock == 0) return;
+	block_t currentBlock = getblock(x, y, z);
 	
 	// air, crosses, water
-	if (isCross(currentBlock->id) || isAir(currentBlock->id) || currentBlock->id == _WATER) {
+	if (isAir(currentBlock) || currentBlock >= halfblock_start)
+	{
 		if (tries--) downSpider(x, y-1, z, id, tries);
-		setb(x, y, z, id, 1, 0);
+		setb(x, y, z, id);
 	}
 }
 
@@ -66,7 +77,7 @@ void ocircleXZroots(int x, int y, int z, float radius, block_t id)
 	{
 		if (dx*dx + dz*dz <= r)
 		{
-			setb(x+dx, y, z+dz, id, 1, 0);
+			setb(x+dx, y, z+dz, id);
 			downSpider(x+dx, y-1, z+dz, id, 6);
 		}
 	}
@@ -74,11 +85,12 @@ void ocircleXZroots(int x, int y, int z, float radius, block_t id)
 
 void ocircleXZ(int x, int y, int z, float radius, block_t id)
 {
-	int dx, dz, r = radius*radius;
-	for (dx = -radius; dx <= radius; dx++)
-	for (dz = -radius; dz <= radius; dz++)
+	int maxrad = radius*radius;
+	for (int dx = -radius; dx <= radius; dx++)
+	for (int dz = -radius; dz <= radius; dz++)
 	{
-		if (dx*dx + dz*dz <= r) setb(x+dx, y, z+dz, id, 1, 0);
+		if (dx*dx + dz*dz <= maxrad)
+			setb(x+dx, y, z+dz, id);
 	}
 }
 

@@ -1,13 +1,15 @@
 #include "biome.hpp"
 
+#include <library/math/vector.hpp>
 #include <generator.h>
 #include <genthread.h>
 #include "noise/simplex1234.h"
 #include "sectors.hpp"
-#include <math.h>
 
 // colors for 2D gradients
 #include "colortable.hpp"
+
+using namespace library;
 
 int toTerrain(int biome)
 {
@@ -55,32 +57,32 @@ int toTerrain(int biome)
 	}
 } // toTerrain(biome)
 
-cl_rgb mixColor(cl_rgb* a, cl_rgb* b, f32_t mixlevel)
+cl_rgb mixColor(cl_rgb* a, cl_rgb* b, float mixlevel)
 {
 	cl_rgb c;
-	c.r = (int)( (f32_t)a->r * (1.0 - mixlevel) + (f32_t)b->r * mixlevel );
-	if (c.r > 255) c.r = 255;
-	c.g = (int)( (f32_t)a->g * (1.0 - mixlevel) + (f32_t)b->g * mixlevel );
-	if (c.g > 255) c.g = 255;
-	c.b = (int)( (f32_t)a->b * (1.0 - mixlevel) + (f32_t)b->b * mixlevel );
-	if (c.b > 255) c.b = 255;
+	c.r = a->r * (1.0 - mixlevel) + b->r * mixlevel;
+	c.r &= 255;
+	c.g = a->g * (1.0 - mixlevel) + b->g * mixlevel;
+	c.g &= 255;
+	c.b = a->b * (1.0 - mixlevel) + b->b * mixlevel;
+	c.b &= 255;
 	return c;
 }
 
-void addColorv(cl_rgb* a, cl_rgb* b, f32_t level)
+void addColorv(cl_rgb* a, cl_rgb* b, float level)
 {
-	a->r += (int)( (f32_t)b->r * level );
-	if (a->r > 255) a->r = 255;
-	a->g += (int)( (f32_t)b->g * level );
-	if (a->g > 255) a->g = 255;
-	a->b += (int)( (f32_t)b->b * level );
-	if (a->b > 255) a->b = 255;
+	a->r += b->r * level;
+	a->r &= 255;
+	a->g += b->g * level;
+	a->g &= 255;
+	a->b += b->b * level;
+	a->b &= 255;
 }
 
-cl_rgb getGradientColor(f32_t v, cl_rgb* array, int size)
+cl_rgb getGradientColor(float v, cl_rgb* array, int size)
 {
-	int    vint = (int)v, vnxt;
-	f32_t  vfrac = v - vint;
+	int   vint = (int)v, vnxt;
+	float vfrac = v - vint;
 	
 	// find color gradient values
 	if (vfrac < 0.5)
@@ -106,12 +108,12 @@ cl_rgb getGradientColor(f32_t v, cl_rgb* array, int size)
 	
 }
 
-cl_rgb getGradientStone(f32_t v, f32_t w)
+cl_rgb getGradientStone(float v, float w)
 {
-	int    vint = (int)v, vnxt;
-	f32_t  vfrac = v - vint;
-	int    wint = (int)w, wnxt;
-	f32_t  wfrac = w - wint;
+	int   vint = (int)v, vnxt;
+	float vfrac = v - vint;
+	int   wint = (int)w, wnxt;
+	float wfrac = w - wint;
 	
 	// find color gradient values
 	vint = vint & (GRAD_STONE-1);
@@ -133,12 +135,12 @@ cl_rgb getGradientStone(f32_t v, f32_t w)
 	return mixColor( &cl[0], &cl[1], wfrac );
 }
 
-cl_rgb getGradientGrass(f32_t v, f32_t w)
+cl_rgb getGradientGrass(float v, float w)
 {
-	int    vint = (int)v, vnxt;
-	f32_t  vfrac = v - vint;
-	int    wint = (int)w, wnxt;
-	f32_t  wfrac = w - wint;
+	int   vint = (int)v, vnxt;
+	float vfrac = v - vint;
+	int   wint = (int)w, wnxt;
+	float wfrac = w - wint;
 	
 	// find color gradient values
 	vint = vint & (GRAD_GRASS-1);
@@ -170,7 +172,7 @@ void biomeGenerator(genthread_t* l_thread)
 	
 	vec3 p;
 	biome_t biome;
-	f32_t determinator, bigw;
+	float  determinator, bigw;
 	cl_rgb biomecl[CL_MAX], tempcl;
 	cl_rgb zeroColor(0, 0, 0);
 	
@@ -178,10 +180,11 @@ void biomeGenerator(genthread_t* l_thread)
 	int i, terrain, bigt = 0;
 	
 	for (x = 0; x < Sector::BLOCKS_XZ; x++)
+	{
+		p.x = l_thread->p.x + x;
 	for (z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
-		p.x = l_thread->p.x + (f64_t) x / Sector::BLOCKS_XZ;
-		p.z = l_thread->p.z + (f64_t) z / Sector::BLOCKS_XZ;
+		p.z = l_thread->p.z + z;
 		
 		// don't scale p.x and p.z!!!!!!!!!!!!
 		biome = biomeGen(p.x, p.z);
@@ -216,8 +219,6 @@ void biomeGenerator(genthread_t* l_thread)
 			{
 				tempcl = getGrassColor(terrain);
 				addColorv(&biomecl[CL_GRASS], &tempcl, weight);
-				
-				tempcl = getCrossColor(terrain);
 				addColorv(&biomecl[CL_CROSS], &tempcl, weight);
 			}
 			
@@ -237,8 +238,6 @@ void biomeGenerator(genthread_t* l_thread)
 		{
 			tempcl = getGrassColor(T_GRASS);
 			addColorv(&biomecl[CL_GRASS], &tempcl, determinator);
-			
-			tempcl = getCrossColor(T_GRASS);
 			addColorv(&biomecl[CL_CROSS], &tempcl, determinator);
 		}
 		
@@ -251,12 +250,12 @@ void biomeGenerator(genthread_t* l_thread)
 			determinator -= bigw;
 		}
 		
-		const f32_t GRASS_GRAD_WEIGHT = 0.6;
-		const f32_t TREES_GRAD_WEIGHT = 0.55;
-		const f32_t STONE_GRAD_WEIGHT = 0.75;
+		const float GRASS_GRAD_WEIGHT = 0.7;
+		const float TREES_GRAD_WEIGHT = 0.6;
+		const float STONE_GRAD_WEIGHT = 0.75;
 		
-		f32_t randomness  = 10.0 + snoise2(p.x*0.01, p.z*0.01) * 8.0 + snoise2(p.x*0.25, p.z*0.25) * 2.0;
-		f32_t randomness2 = 10.0 + snoise2(p.z*0.02, p.x*0.02) * 8.0 + snoise2(p.x*0.26, p.z*0.26) * 2.0;
+		float randomness  = 8.f + snoise2(p.x*0.0011, p.z*0.0011) * 7.0 + snoise2(p.x*0.015, p.z*0.015) * 1.0;
+		float randomness2 = 8.f + snoise2(p.z*0.0021, p.x*0.0021) * 7.0 + snoise2(p.x*0.016, p.z*0.016) * 1.0;
 		
 		// create randomness on certain color types
 		// but only if this particular terrain has extra coloring
@@ -265,11 +264,11 @@ void biomeGenerator(genthread_t* l_thread)
 			determinator *= GRASS_GRAD_WEIGHT;
 			
 			tempcl = getGradientGrass(randomness, randomness2);
-			//biomecl[CL_GRASS] = mixColor(&biomecl[CL_GRASS], &tempcl, determinator);
-			//biomecl[CL_CROSS] = mixColor(&biomecl[CL_CROSS], &tempcl, determinator);
+			biomecl[CL_GRASS] = mixColor(&biomecl[CL_GRASS], &tempcl, determinator);
+			biomecl[CL_CROSS] = mixColor(&biomecl[CL_CROSS], &tempcl, determinator);
 			
 			tempcl = getGradientGrass(randomness2, randomness);
-			//biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
+			biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
 		}
 		
 		// always modulate stone color
@@ -280,6 +279,6 @@ void biomeGenerator(genthread_t* l_thread)
 		for (i = 0; i < CL_MAX; i++)
 			flatland(x, z).color[i] = toColor(biomecl[i]);
 		
-	}
-	
+	} // z
+	} // x
 }

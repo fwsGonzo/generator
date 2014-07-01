@@ -30,15 +30,15 @@ void flatTerrain(genthread_t* l_thread)
 	for (int x = 0; x < Sector::BLOCKS_XZ; x++)
 	for (int z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
-		p.x = (l_thread->p.x + (f64_t)x) * 0.01;
-		p.z = (l_thread->p.z + (f64_t)z) * 0.01;
+		p.x = (l_thread->p.x + x) * 0.01;
+		p.z = (l_thread->p.z + z) * 0.01;
 		simplex[x][z] = 0.5 + snoise2(p.x, p.z) * 0.25;
 	}
 	
 	for (int y = Sectors::TOP_BLOCK; y >= 0; y--)
 	{
 		// world vec.y
-		p.y = (f64_t) y / Sectors::TOP_BLOCK;
+		p.y = y / (float)Sectors::TOP_BLOCK;
 		
 		// internal sector coordinate
 		by = y & (Sector::BLOCKS_Y-1);

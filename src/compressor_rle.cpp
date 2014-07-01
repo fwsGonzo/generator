@@ -10,6 +10,7 @@ RLECompressor::RLECompressor()
 {
 	rh.palettes = 0;
 	rh.entries = 0;
+	this->decomp = nullptr;
 	this->rledata = nullptr;
 }
 
@@ -21,6 +22,8 @@ void RLECompressor::zero()
 	rh.palettes = 0;
 	rh.entries  = 0;
 }
+
+/// DECOMPRESSOR ///
 
 void RLECompressor::compress(Sector::sectorblock_t& sb)
 {
@@ -110,3 +113,44 @@ void RLECompressor::compress(Sector::sectorblock_t& sb)
 	
 } // RLE compress()
 
+/// COMPRESSOR ///
+
+bool RLECompressor::hasBlocks(unsigned char* data)
+{
+	// set RLEHeader internally, so that further info can be retrieved later on
+	// CAREFUL when removing the next line, there is a dependency in the compressor
+	decomp = (RLEHeader*) data;
+	
+	return decomp->getBlocks() != 0;
+}
+
+void RLECompressor::decompress(unsigned char* data, Sector::sectorblock_t& sb)
+{
+	// first treat data as a RLEHeader
+	decomp = (RLEHeader*) data;
+	data += sizeof(RLEHeader);
+	
+	// get entry data
+	RLEEntry* entry = (RLEEntry*) data;
+	data += decomp->getEntries() * sizeof(RLEEntry);
+	
+	// first palette (block)
+	block_t* palette = (block_t*) data;
+	// last entry in palette entries list (used as count)
+	RLEEntry* entries = entry + decomp->getEntries();
+	// entry point to sector blocks
+	block_t* sblock = sb.b;
+	
+	for (; entry < entries; entry++)
+	{
+		block_t blockData = palette[ entry->palid ];
+		while (entry->count--)
+		{
+			*sblock = blockData; sblock++;
+		}
+	}
+	// set sectorblock info
+	sb.blocks     = decomp->getBlocks();
+	sb.torchlight = decomp->getLights();
+	sb.hardsolid  = decomp->getHardsolid();
+}

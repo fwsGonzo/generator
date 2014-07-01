@@ -1,12 +1,12 @@
 #ifndef HELPERS_HPP
 #define HELPERS_HPP
 
-typedef unsigned short block_t;
+#include <blocks.hpp>
 
 extern int ofacing(int dx, int dz);
 extern int ofacingNeg(int dx, int dz);
 
-extern bool coretest(int x, int y, int z, int rad);
+extern bool coretest(int x, int y, int z, int ground_rad, int air_rad, int height);
 extern void downSpider(int x, int y, int z, block_t id, int tries);
 
 extern void ocircleXZ(int x, int y, int z, float radius, block_t id);

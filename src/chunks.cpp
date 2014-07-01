@@ -71,3 +71,47 @@ void Chunks::compress(const std::string& outputFolder)
 	
 	if (ff.is_open()) ff.close();
 }
+
+void Chunks::decompress(const std::string& outputFolder)
+{
+	std::ifstream ff;
+	std::string filename, lastfile;
+	
+	for (int x = 0; x < sectors.getXZ(); x++)
+	for (int z = 0; z < sectors.getXZ(); z++)
+	{
+		filename = getChunkBaseFilename(x, z);
+		
+		//---------------------------------------//
+		// write column of sectors to chunk file //
+		//---------------------------------------//
+		
+		if (filename != lastfile)
+		{
+			if (ff.is_open()) ff.close(); // close old file
+			
+			std::string fullname = outputFolder + "/" + filename + ".compressed";
+			
+			// open new file
+			ff.open(fullname, std::ios::in | std::ios::binary);
+			lastfile = filename;
+			
+		} // current != last file
+		
+		if (ff.is_open()) // if a file is open, ...
+		{
+			// write to file
+			compressor.load(ff, x, z);
+			
+		} // file is open
+		else
+		{
+			// clear all sectors in column
+			Sector* sbase = &sectors(x, z);
+			for (int y = 0; y < Sectors::SECTORS_Y; y++)
+				sbase[y].clear();
+		}
+	}
+	
+	if (ff.is_open()) ff.close();
+}
