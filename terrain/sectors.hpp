@@ -2,6 +2,7 @@
 #define SECTORS_HPP
 
 #include "blocks.hpp"
+#include "biome/biome.hpp"
 
 typedef int wcoord_t;
 
@@ -29,40 +30,35 @@ public:
 	} sectorblock_t;
 	#pragma pack(pop)
 	
-	Sector() { blocks = nullptr; }
-	~Sector() { delete blocks; }
+	Sector() { }
+	~Sector() { }
 	
 	inline wcoord_t getX() const { return x; }
 	inline wcoord_t getY() const { return y; }
 	inline wcoord_t getZ() const { return z; }
 	
-	inline bool hasBlocks() const
-	{
-		return blocks != nullptr;
-	}
 	inline block_t* getBlocks()
 	{
-		return blocks->b;
+		return blocks.b;
 	}
 	inline short blockCount() const
 	{
-		return blocks->blocks;
+		return blocks.blocks;
 	}
 	inline block_t& operator() (int bx, int by, int bz)
 	{
-		return blocks->b[(bx * BLOCKS_XZ + bz) * BLOCKS_Y + by];
+		return blocks.b[(bx * BLOCKS_XZ + bz) * BLOCKS_Y + by];
 	}
 	
 	// operations
 	void finish();
 	void clear();
-	void createBlocks();
 	
 private:
 	wcoord_t x;
 	wcoord_t y;
 	wcoord_t z;
-	sectorblock_t* blocks;
+	sectorblock_t blocks;
 	
 	friend class Sectors;
 	friend class Compressor;
@@ -123,13 +119,22 @@ public:
 		return fdata[x][z];
 	}
 	
+	inline biome_t& getWeights(int x, int z)
+	{
+		return this->weights[x][z];
+	}
+	inline void setWeights(int x, int z, biome_t biome)
+	{
+		getWeights(x, z) = biome;
+	}
+	
 private:
 	flatdata_t fdata[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
+	biome_t    weights[Sector::BLOCKS_XZ][Sector::BLOCKS_XZ];
 	
 public:
 	// the (decompressed) file record size of a flatland-sector
 	static const int FLATLAND_SIZE = sizeof(fdata);
-	
 	friend class Compressor;
 };
 

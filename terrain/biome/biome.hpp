@@ -11,11 +11,8 @@
 		float w[4];
 	} biome_t;
 	
-	extern biome_t biomeGen(double gx, double gy);
+	extern biome_t biomeGen(float gx, float gy);
 	extern int toTerrain(int biome);
-	
-	// scale
-	#define BIOME_SCALE 0.1
 	
 	// terrains
 	#define T_ICECAP    0

@@ -97,7 +97,7 @@ void areaPostProcess(genthread_t* l_thread)
 				
 				// count soil as we go down, with enough soil
 				// we will convert it directly to stone
-				if (1)
+				if (true)
 				{
 					const int stone_conv_overw = 4;
 					const int stone_conv_under = 8;
@@ -267,10 +267,10 @@ void areaPostProcess(genthread_t* l_thread)
 							{
 								if (snoise2(p.x * 0.02, p.z * 0.02) < 0.0)
 								{
-									//int height = 8 + randf(dx, dy+1, dz) * 16;
+									int height = 8 + randf(dx, dy+1, dz) * 16;
 									
-									//if (dy + height < GEN_FULLHEIGHT)
-									//	ingenBigDarkTree(dx, dy+1, dz, height);
+									if (dy + height < GEN_FULLHEIGHT)
+										ingenBigDarkTree(dx, dy+1, dz, height);
 								}
 								
 							} else if (rand < 0.2) {
@@ -395,11 +395,10 @@ void areaPostProcess(genthread_t* l_thread)
 							// jungle terrain
 							if (rand < 0.00075 && air > 40)
 							{
-								//int height = 16 + randf(dx, dy-1, dz) * 32;
+								int height = 16 + randf(dx, dy-1, dz) * 32;
 								
-								//if (dy + height < GEN_FULLHEIGHT)
-								//	ingenJungleTree( dx, dy+1, dz, height );
-								
+								if (dy + height < GEN_FULLHEIGHT)
+									ingenJungleTree(dx, dy+1, dz, height);
 							}
 							else if (rand < 0.25)
 							{

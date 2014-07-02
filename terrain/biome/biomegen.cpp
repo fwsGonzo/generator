@@ -51,20 +51,20 @@ int cols[21][3] =
 //#define COLINT(cc,c1,c2,f) { cc[0] = c1[0]+(c2[0]-c1[0])*f; cc[1] = c1[1]+(c2[1]-c1[1])*f; cc[2] = c1[2]+(c2[2]-c1[2])*f; }
 
 
-biome_t biomeGen(double gx, double gy)
+biome_t biomeGen(float gx, float gy)
 {
 	biome_t biome;
 	
-	int biomeValue = 4;
+	/*int biomeValue = 19;
 	biome.b[0] = biome.b[1] = biome.b[2] = biome.b[3] = biomeValue;
 	biome.w[0] = 1.0;
 	biome.w[1] = biome.w[2] = biome.w[3] = 0.0;
-	return biome;
-	
+	return biome;*/
 	
 	// biome scale
-	gx /= BIOME_SCALE;
-	gy /= BIOME_SCALE;
+	const float BIOME_SCALE = 1.0f / 8000.0f;
+	gx *= BIOME_SCALE;
+	gy *= BIOME_SCALE;
 	
 	const float climateBias = 0.9; // <1.0 more warm, >1.0 more cold
 	const float edge = 0.75;

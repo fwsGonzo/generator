@@ -2,11 +2,15 @@
 #define COLORTABLE_HPP
 
 struct cl_rgb;
-#define GRAD_STONE  4
-#define GRAD_GRASS  4
+#define GRAD_4    4
+#define GRAD_4x4  GRAD_4][GRAD_4
 
-extern cl_rgb StonyColors[GRAD_STONE][GRAD_STONE];
-extern cl_rgb GrassyColors[GRAD_GRASS][GRAD_GRASS];
+extern cl_rgb StonyColors[GRAD_4x4];
+
+extern cl_rgb clAutumnColors[GRAD_4x4];
+extern cl_rgb clIslandColors[GRAD_4x4];
+extern cl_rgb clGrassyColors[GRAD_4x4];
+extern cl_rgb clJungleColors[GRAD_4x4];
 
 extern cl_rgb getStoneColor(int terrain);
 extern cl_rgb getGrassColor(int terrain);

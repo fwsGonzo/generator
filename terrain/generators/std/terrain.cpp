@@ -57,6 +57,8 @@ float getnoise_caves(vec3 p)
 
 float getnoise_icecap(vec3 p)
 {
+	p.x *= 0.003;
+	p.z *= 0.003;
 	float n1 = sfreq2d(p, 0.5);
 	float n2 = sfreq2d(p, 0.15);
 	vec3 npos = p / 4.0; // the relationship between n1 and npos is 4 / 0.5
@@ -72,6 +74,8 @@ float getnoise_icecap(vec3 p)
 
 float getnoise_snow(vec3 p)
 {
+	p.x *= 0.003;
+	p.z *= 0.003;
 	float n1 = sfreq(p, 3.0);
 	
 	// peaks
@@ -146,9 +150,9 @@ float getnoise_autumn(vec3 p)
 	float calm = n3 * 0.5 + 0.5;
 	
 	// rings
-	n1 = p.y + 0.05 + COSN_aut * (1.0 + landscape) * 0.4 + n0 * n2 * 0.1;
+	n1 = p.y + 0.05 + COSN_aut * (1.0 + landscape) * 0.3 + n0 * n2 * 0.05;
 	// ground
-	n1 = n1 * (1.0 - calm) + (p.y - 0.35 + n3 * 0.05) * calm;
+	n1 = n1 * (1.0 - calm) + (p.y - 0.4 + n3 * 0.05) * calm;
 	
 	// 3d carved
 	if (n1 < 0.0 && n1 > -0.5)

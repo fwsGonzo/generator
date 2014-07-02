@@ -9,16 +9,13 @@ void threaded_finish(genthread_t* gt)
 	
 	for (int y = 0; y < Sectors::SECTORS_Y; y++)
 	{
-		if (base[y].hasBlocks())
+		// finish stuff
+		base[y].finish();
+		// if the sector is empty...
+		if (base[y].blockCount() == 0)
 		{
-			// finish stuff
-			base[y].finish();
-			// if the sector is empty...
-			if (base[y].blockCount() == 0)
-			{
-				// just clear it
-				base[y].clear();
-			}
+			// just clear it
+			base[y].clear();
 		}
 	}
 } // threaded_finish()

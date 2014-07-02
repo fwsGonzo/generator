@@ -69,7 +69,7 @@ void downSpider(int x, int y, int z, block_t id, int tries)
 	}
 }
 
-void ocircleXZroots(int x, int y, int z, float radius, block_t id)
+void ocircleXZroots(int x, int y, int z, int radius, block_t id)
 {
 	int dx, dz, r = radius*radius;
 	for (dx = -radius; dx <= radius; dx++)
@@ -83,7 +83,7 @@ void ocircleXZroots(int x, int y, int z, float radius, block_t id)
 	}
 }
 
-void ocircleXZ(int x, int y, int z, float radius, block_t id)
+void ocircleXZ(int x, int y, int z, int radius, block_t id)
 {
 	int maxrad = radius*radius;
 	for (int dx = -radius; dx <= radius; dx++)
@@ -91,6 +91,22 @@ void ocircleXZ(int x, int y, int z, float radius, block_t id)
 	{
 		if (dx*dx + dz*dz <= maxrad)
 			setb(x+dx, y, z+dz, id);
+	}
+}
+void ocircleXZstencil(int gx, int gy, int gz, int rad, block_t id, float chance)
+{
+	int maxrad = rad * rad;
+	for (int x = -rad; x <= rad; x++)
+	for (int z = -rad; z <= rad; z++)
+	{
+		int dist_sq = x*x + z*z;
+		if (dist_sq <= maxrad)
+		{
+			if (randf(gx+x, gy, gz+z) < chance)
+			{
+				setb(gx + x, gy, gz + z, id, false);
+			}
+		}
 	}
 }
 

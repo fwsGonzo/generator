@@ -59,14 +59,7 @@ void flatTerrain(genthread_t* l_thread)
 			if (p.y < h) id = _GREENSOIL;
 			
 			// set directly
-			if (id)
-			{
-				if (s->hasBlocks() == false)
-				{
-					s->createBlocks();
-				}
-				s[0](x, by, z) = id;
-			}
+			if (id) s[0](x, by, z) = id;
 		} // x/z
 		
 	} // y

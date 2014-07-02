@@ -116,10 +116,10 @@ cl_rgb getGradientStone(float v, float w)
 	float wfrac = w - wint;
 	
 	// find color gradient values
-	vint = vint & (GRAD_STONE-1);
-	wint = wint & (GRAD_STONE-1);
-	vnxt = (vint + 1) & (GRAD_STONE-1);
-	wnxt = (wint + 1) & (GRAD_STONE-1);
+	vint = vint & (GRAD_4-1);
+	wint = wint & (GRAD_4-1);
+	vnxt = (vint + 1) & (GRAD_4-1);
+	wnxt = (wint + 1) & (GRAD_4-1);
 	
 	// get gradient array colors
 	cl_rgb cl[4];
@@ -135,7 +135,7 @@ cl_rgb getGradientStone(float v, float w)
 	return mixColor( &cl[0], &cl[1], wfrac );
 }
 
-cl_rgb getGradientGrass(float v, float w)
+cl_rgb getGradient4x4(float v, float w, cl_rgb grad[GRAD_4x4])
 {
 	int   vint = (int)v, vnxt;
 	float vfrac = v - vint;
@@ -143,17 +143,17 @@ cl_rgb getGradientGrass(float v, float w)
 	float wfrac = w - wint;
 	
 	// find color gradient values
-	vint = vint & (GRAD_GRASS-1);
-	wint = wint & (GRAD_GRASS-1);
-	vnxt = (vint + 1) & (GRAD_GRASS-1);
-	wnxt = (wint + 1) & (GRAD_GRASS-1);
+	vint = vint & (GRAD_4-1);
+	wint = wint & (GRAD_4-1);
+	vnxt = (vint + 1) & (GRAD_4-1);
+	wnxt = (wint + 1) & (GRAD_4-1);
 	
 	// get gradient array colors
 	cl_rgb cl[4];
-	cl[0] = GrassyColors[vint][wint];
-	cl[1] = GrassyColors[vnxt][wint];
-	cl[2] = GrassyColors[vint][wnxt];
-	cl[3] = GrassyColors[vnxt][wnxt];
+	cl[0] = grad[vint][wint];
+	cl[1] = grad[vnxt][wint];
+	cl[2] = grad[vint][wnxt];
+	cl[3] = grad[vnxt][wnxt];
 	
 	// bilinear interpolation
 	cl[0] = mixColor( &cl[0], &cl[1], vfrac );
@@ -172,36 +172,40 @@ void biomeGenerator(genthread_t* l_thread)
 	
 	vec3 p;
 	biome_t biome;
-	float  determinator, bigw;
 	cl_rgb biomecl[CL_MAX], tempcl;
-	cl_rgb zeroColor(0, 0, 0);
+	cl_rgb zeroColor(0);
 	
-	int x, z;
-	int i, terrain, bigt = 0;
-	
-	for (x = 0; x < Sector::BLOCKS_XZ; x++)
+	for (int x = 0; x < Sector::BLOCKS_XZ; x++)
 	{
 		p.x = l_thread->p.x + x;
-	for (z = 0; z < Sector::BLOCKS_XZ; z++)
+	for (int z = 0; z < Sector::BLOCKS_XZ; z++)
 	{
 		p.z = l_thread->p.z + z;
+		
+		const float GRASS_GRAD_WEIGHT = 0.7;
+		const float TREES_GRAD_WEIGHT = 0.6;
+		const float STONE_GRAD_WEIGHT = 0.75;
+		
+		float random1 = 8.f + snoise2(p.x*0.0011, p.z*0.0011) * 7.0 + snoise2(p.x*0.015, p.z*0.015) * 1.0;
+		float random2 = 8.f + snoise2(p.z*0.0021, p.x*0.0021) * 7.0 + snoise2(p.x*0.016, p.z*0.016) * 1.0;
 		
 		// don't scale p.x and p.z!!!!!!!!!!!!
 		biome = biomeGen(p.x, p.z);
 		
 		// reset vertex colors all in one swoooop
-		for (i = 0; i < CL_MAX; i++)
+		for (int i = 0; i < CL_MAX; i++)
 			biomecl[i] = zeroColor;
 		
-		determinator = bigw = 0.0;
+		float bigw = 0.0;
+		int   bigt = 0;
 		
 		#define weight    biome.w[i]
 		
-		for (i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 		{
 			if (weight == 0.0) continue;
 			
-			terrain = toTerrain(biome.b[i]);
+			int terrain = toTerrain(biome.b[i]);
 			
 			// determine strongest weight, and use that for terrain-id
 			// in all later generator stages
@@ -211,73 +215,50 @@ void biomeGenerator(genthread_t* l_thread)
 				bigt = terrain;
 			}
 			
-			if (terrain == T_SNOW || terrain == T_ICECAP)
+			// grass colors
+			switch (terrain)
 			{
-				determinator += weight;
-			}
-			else
-			{
-				tempcl = getGrassColor(terrain);
-				addColorv(&biomecl[CL_GRASS], &tempcl, weight);
-				addColorv(&biomecl[CL_CROSS], &tempcl, weight);
+			case T_ICECAP:
+			case T_SNOW:
+				tempcl = getGradient4x4(random1, random2, clAutumnColors);
+				break;
+			case T_AUTUMN:
+				tempcl = getGradient4x4(random1, random2, clAutumnColors);
+				break;
+			case T_ISLANDS:
+				tempcl = getGradient4x4(random1, random2, clIslandColors);
+				break;
+			case T_GRASS:
+				tempcl = getGradient4x4(random1, random2, clGrassyColors);
+				break;
+			case T_JUNGLE:
+				tempcl = getGradient4x4(random1, random2, clAutumnColors);
+				break;
 			}
 			
+			biomecl[CL_GRASS] = tempcl;
+			biomecl[CL_CROSS] = tempcl;
+			// tree color
+			biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
+			
+			// stone color
 			tempcl = getStoneColor(terrain);
 			addColorv(&biomecl[CL_STONE], &tempcl, weight);
-			
-			tempcl = getLeafColor(terrain);
-			addColorv(&biomecl[CL_TREES], &tempcl, weight);
-			
 		}
 		
 		// set terrain-id based on the strongest weight
 		flatland(x, z).terrain = bigt;
 		
-		// if we encountered snow weights, we ignore them and add the biggest terrain instead
-		if (determinator != 0.0)
-		{
-			tempcl = getGrassColor(T_GRASS);
-			addColorv(&biomecl[CL_GRASS], &tempcl, determinator);
-			addColorv(&biomecl[CL_CROSS], &tempcl, determinator);
-		}
-		
-		determinator = 1.0;
-		
-		// special case for snow terrain
-		if (bigt == T_ICECAP || bigt == T_SNOW)
-		{
-			// remove extra grass color by the terrains weight
-			determinator -= bigw;
-		}
-		
-		const float GRASS_GRAD_WEIGHT = 0.7;
-		const float TREES_GRAD_WEIGHT = 0.6;
-		const float STONE_GRAD_WEIGHT = 0.75;
-		
-		float randomness  = 8.f + snoise2(p.x*0.0011, p.z*0.0011) * 7.0 + snoise2(p.x*0.015, p.z*0.015) * 1.0;
-		float randomness2 = 8.f + snoise2(p.z*0.0021, p.x*0.0021) * 7.0 + snoise2(p.x*0.016, p.z*0.016) * 1.0;
-		
-		// create randomness on certain color types
-		// but only if this particular terrain has extra coloring
-		if (determinator != 0.0)
-		{
-			determinator *= GRASS_GRAD_WEIGHT;
-			
-			tempcl = getGradientGrass(randomness, randomness2);
-			biomecl[CL_GRASS] = mixColor(&biomecl[CL_GRASS], &tempcl, determinator);
-			biomecl[CL_CROSS] = mixColor(&biomecl[CL_CROSS], &tempcl, determinator);
-			
-			tempcl = getGradientGrass(randomness2, randomness);
-			biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
-		}
-		
 		// always modulate stone color
-		tempcl = getGradientStone(randomness, randomness2);
+		tempcl = getGradientStone(random1, random2);
 		biomecl[CL_STONE] = mixColor(&biomecl[CL_STONE], &tempcl, STONE_GRAD_WEIGHT);
 		
 		// set vertex colors all in one swoooop
-		for (i = 0; i < CL_MAX; i++)
+		for (int i = 0; i < CL_MAX; i++)
+		{
 			flatland(x, z).color[i] = toColor(biomecl[i]);
+		}
+		flatland.setWeights(x, z, biome);
 		
 	} // z
 	} // x

@@ -17,9 +17,11 @@ void Sectors::init(int size)
 	for (int z = 0; z < sectorsXZ; z++)
 	for (int y = 0; y < SECTORS_Y; y++)
 	{
-		this[0](x, y, z).x = x;
-		this[0](x, y, z).y = y;
-		this[0](x, y, z).z = z;
+		Sector& sector = this[0](x, y, z);
+		sector.x = x;
+		sector.y = y;
+		sector.z = z;
+		sector.clear();
 	}
 	
 	// create flatlands
@@ -35,21 +37,15 @@ void Sectors::reset()
 	}
 }
 
-void Sector::createBlocks()
-{
-	blocks = new sectorblock_t();
-	// clear memory
-	memset(blocks, 0, sizeof(sectorblock_t));
-}
 void Sector::clear()
 {
-	delete blocks;
-	blocks = nullptr;
+	// clear memory
+	memset(&blocks, 0, sizeof(sectorblock_t));
 }
 
 void Sector::finish()
 {
-	block_t* b = blocks->b;
+	block_t* b = blocks.b;
 	
 	unsigned char hardsolid = Sector::MAX_HARDSOLID;
 	short count  = 0;
@@ -93,7 +89,7 @@ void Sector::finish()
 		b++; // next block
 	}
 	
-	blocks->blocks = count;
-	blocks->torchlight = lights;
-	blocks->hardsolid = hardsolid;
+	blocks.blocks = count;
+	blocks.torchlight = lights;
+	blocks.hardsolid = hardsolid;
 }

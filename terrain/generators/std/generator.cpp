@@ -142,19 +142,20 @@ void terrainGenerator(genthread_t* l_thread)
 {
 	// interpolation grid partitions
 	#define ngrid 8
-	#define ygrid 4 // not yet used
+	#define bgrid Sector::BLOCKS_XZ
 	
-	const float grid_pfac = Sector::BLOCKS_XZ / (float)ngrid;
-	// noise data
-	float noisearray[ngrid+1][ngrid+1];
-	float cavesarray[ngrid+1][ngrid+1];
+	const int grid_pfac = Sector::BLOCKS_XZ / ngrid;
 	// biome data
 	biome_t biomearray[ngrid+1][ngrid+1];
+	// noise data
+	float noisearray[ngrid+1][ngrid+1];
 	// value data
 	float beachhead[ngrid+1][ngrid+1];
 	
-	// some variables
-	int wx = l_thread->x, wz = l_thread->z;
+	// some bullshit happening here
+	int wx = l_thread->x;
+	int wz = l_thread->z;
+	Flatland& flatland = flatlands(wx, wz);
 	vec3 p; // world position
 	
 	// retrieve data for noise biome interpolation, and heightmap
@@ -166,20 +167,18 @@ void terrainGenerator(genthread_t* l_thread)
 		{
 			p.z = l_thread->p.z + z * grid_pfac;
 			
-			// don't scale p.x and p.z!!!!!!!!!!!!
-			biomearray[x][z] = biomeGen(p.x, p.z);
+			biome_t& biome = biomearray[x][z];
+			if (x != ngrid && z != ngrid)
+				biome = flatland.getWeights(x * grid_pfac, z * grid_pfac);
+			else
+				biome = biomeGen(p.x, p.z);
 			
-			beachhead[x][z] = snoise2(p.x * 0.009, p.z * 0.009);
+			// beach height/level variance
+			beachhead[x][z] = snoise2(p.x * 0.006, p.z * 0.006);
 		}
 	}
 	
-	biome_t* biomeptr;
-	int i, terrain_id;
-	
 	Sector* s = nullptr;
-	int by;  // local sector coordinate (0 .. 7)
-	float density, caves, beach;
-	block_t id = _AIR;
 	
 	// not including 0
 	for (int y = GEN_FULLHEIGHT; y > 0; y--)
@@ -195,51 +194,48 @@ void terrainGenerator(genthread_t* l_thread)
 			{
 				p.z = l_thread->p.z + z * grid_pfac;
 				
-				biomeptr = &biomearray[x][z];
+				biome_t& biome = biomearray[x][z];
 				noisearray[x][z] = 0.0;
 				
-				for (i = 0; i < 4; i++)
+				for (int i = 0; i < 4; i++)
 				{
-					if (biomeptr->w[i] == 0.0) continue;
+					if (biome.w[i] < 0.01) continue;
 					
-					terrain_id = toTerrain(biomeptr->b[i]);
+					int terrain_id = toTerrain(biome.b[i]);
 					switch (terrain_id)
 					{
 					case T_ICECAP:
-						noisearray[x][z] += getnoise_icecap(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_icecap(p) * biome.w[i];
 						break;
 					case T_SNOW:
-						noisearray[x][z] += getnoise_snow(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_snow(p) * biome.w[i];
 						break;
 					case T_AUTUMN:
-						noisearray[x][z] += getnoise_autumn(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_autumn(p) * biome.w[i];
 						break;
 					case T_ISLANDS:
-						noisearray[x][z] += getnoise_islands(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_islands(p) * biome.w[i];
 						break;
 					case T_GRASS:
-						noisearray[x][z] += getnoise_grass(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_grass(p) * biome.w[i];
 						break;
 					case T_MARSH:
-						noisearray[x][z] += getnoise_marsh(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_marsh(p) * biome.w[i];
 						break;
 					case T_JUNGLE:
-						noisearray[x][z] += getnoise_jungle(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_jungle(p) * biome.w[i];
 						break;
 					case T_DESERT:
-						noisearray[x][z] += getnoise_desert(p) * biomeptr->w[i];
+						noisearray[x][z] += getnoise_desert(p) * biome.w[i];
 					}
 					
 				} // weights
-				
-				// cave densities
-				cavesarray[x][z] = getnoise_caves(p);
 				
 			} // grid z
 		} // grid x
 		
 		// internal sector coordinate
-		by = y & (Sector::BLOCKS_Y-1);
+		int by = y & (Sector::BLOCKS_Y-1);
 		// if at the top of a new sector, get sector pointer
 		if (by == Sector::BLOCKS_Y-1) s = &sectors(wx, y >> 3, wz);
 		
@@ -250,12 +246,14 @@ void terrainGenerator(genthread_t* l_thread)
 		
 		for (int x = 0; x < Sector::BLOCKS_XZ; x++)
 		{
+			p.x = l_thread->p.x + x;
 			float fx = x / (float)Sector::BLOCKS_XZ * ngrid;
 			int bx = (int)fx; // start x
 			frx = fx - bx;
 			
 			for (int z = 0; z < Sector::BLOCKS_XZ; z++)
 			{
+				p.z = l_thread->p.z + z;
 				float fz = z / (float)Sector::BLOCKS_XZ * ngrid;
 				int bz = (int)fz;  // integral
 				frz = fz - bz; // fractional
@@ -263,33 +261,25 @@ void terrainGenerator(genthread_t* l_thread)
 				// density weights //
 				w0 = mix( noisearray[bx][bz  ], noisearray[bx+1][bz  ], frx );
 				w1 = mix( noisearray[bx][bz+1], noisearray[bx+1][bz+1], frx );
-				density = mix( w0, w1, frz );
+				float density = mix( w0, w1, frz );
 				// density weights //
 				
 				if (y <= GEN_WATERBLOCKS+1 || density < 0.0)
 				{
-					// caves weights //
-					w0 = mix( cavesarray[bx][bz  ], cavesarray[bx+1][bz  ], frx );
-					w1 = mix( cavesarray[bx][bz+1], cavesarray[bx+1][bz+1], frx );
-					caves = mix( w0, w1, frz );
-					// caves weights //
+					// caves density (high precision) //
+					float caves = getnoise_caves(p);
+					// caves density //
 					
 					// beachhead weights //
 					w0 = mix( beachhead[bx][bz  ], beachhead[bx+1][bz  ], frx );
 					w1 = mix( beachhead[bx][bz+1], beachhead[bx+1][bz+1], frx );
-					beach = mix( w0, w1, frz );
+					float beach = mix( w0, w1, frz );
 					// beachhead weights //
 					
-					id = getTerrainComplex(p.y, beach, density, caves);
+					block_t id = getTerrainComplex(p.y, beach, density, caves);
 					
 					// if the block is not _AIR (0), set the block
-					if (id)
-					{
-						// create only on-demand!
-						if (s->hasBlocks() == false) s->createBlocks();
-						// directly set block value
-						s[0](x, by, z) = id;
-					}
+					if (id) s[0](x, by, z) = id;
 				}
 				
 			} // z

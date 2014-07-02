@@ -81,6 +81,9 @@
       <File Name="terrain/objects/mushrooms.cpp"/>
       <File Name="terrain/objects/house.cpp"/>
       <File Name="terrain/objects/helpers.cpp"/>
+      <File Name="terrain/objects/autumn_objects.cpp"/>
+      <File Name="terrain/objects/jungle_objects.cpp"/>
+      <File Name="terrain/objects/winter_objects.cpp"/>
     </VirtualDirectory>
     <File Name="terrain/blocks.cpp"/>
     <File Name="terrain/generator.h"/>

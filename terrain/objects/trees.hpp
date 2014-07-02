@@ -7,5 +7,7 @@ extern void otreeSabal(int gx, int gy, int gz, int height);
 extern void otreeJungleVines(int gx, int gy, int gz, int height);
 extern void otreeHuge(int gx, int gy, int gz, int height);
 
+extern void ingenBigDarkTree(int gx, int gy, int gz, int height);
+extern void ingenJungleTree(int gx, int gy, int gz, int height);
 
 #endif

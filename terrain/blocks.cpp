@@ -26,13 +26,6 @@ void setb(int x, int y, int z, block_t block, bool overwrite)
 	Sector* sector = spiderwrap(x, y, z);
 	if (sector)
 	{
-		if (sector->hasBlocks() == false)
-		{
-			sector->createBlocks();
-			// set immediately
-			sector[0](x, y, z) = block;
-			return;
-		}
 		block_t& dest = sector[0](x, y, z);
 		
 		if ((dest & 1023) == _AIR || overwrite)
@@ -50,10 +43,7 @@ block* getb(int x, int y, int z)
 	Sector* sector = spiderwrap(x, y, z);
 	if (sector)
 	{
-		if (sector->hasBlocks())
-		{
-			return (block*) &sector[0](x, y, z);
-		}
+		return (block*) &sector[0](x, y, z);
 	}
 	return (block*) &airblock;
 }
@@ -62,12 +52,7 @@ block_t getblock(int x, int y, int z)
 	Sector* sector = spiderwrap(x, y, z);
 	if (sector)
 	{
-		if (sector->hasBlocks())
-		{
-			return sector[0](x, y, z);
-		}
-		// assume sectors without blocks have air
-		return _AIR;
+		return sector[0](x, y, z);
 	}
 	// below the world, everything is adminium
 	if (y <= 0) return _ADMINIUM;

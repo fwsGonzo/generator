@@ -3,10 +3,8 @@
 #include <library/math/vector.hpp>
 #include "blocks.hpp"
 #include "generator.h"
-#include "vec.h"
 #include "helpers.hpp"
 #include "random.hpp"
-#include <cstdlib>
 #include <cmath>
 
 using namespace library;

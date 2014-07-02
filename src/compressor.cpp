@@ -23,11 +23,6 @@ struct compressed_datalength_t
 
 char* compressor_data;
 
-int compressor_column_bytes_byheight(int h)
-{
-	return sizeof(Flatland::FLATLAND_SIZE) + h * sizeof(Sector::sectorblock_t);
-}
-
 void Compressor::init()
 {
 	// LZO compressor
@@ -70,24 +65,20 @@ void Compressor::write(std::fstream& ff, int x, int z)
 	// compressable column working array
 	char* cpos = compressor_data;
 	
-	memcpy (cpos, &flatlands(x, z), sizeof(Flatland));
-	cpos += sizeof(Flatland);
+	memcpy (cpos, flatlands(x, z).fdata[0], Flatland::FLATLAND_SIZE);
+	cpos += Flatland::FLATLAND_SIZE;
 	
-	int totalbytes = sizeof(Flatland);
+	int totalbytes = Flatland::FLATLAND_SIZE;
 	
 	// find highest living sector
 	int highest = 0;
 	for (int y = Sectors::SECTORS_Y-1; y >= 0; y--)
 	{
-		if (sectors(x, y, z).hasBlocks())
+		if (sectors(x, y, z).blockCount())
 		{
-			if (sectors(x, y, z).blockCount())
-			{
-				highest = y + 1;
-				break;
-			}
+			highest = y + 1;
+			break;
 		}
-		
 	}
 	
 	// the RLE compressor
@@ -95,11 +86,11 @@ void Compressor::write(std::fstream& ff, int x, int z)
 	
 	for (int y = 0; y < highest; y++)
 	{
-		if (sectors(x, y, z).hasBlocks())
+		if (sectors(x, y, z).blockCount())
 		{
 			// if sector has blocks, copy over
 			// but RLE compress it first
-			rc.compress(*sectors(x, y, z).blocks);
+			rc.compress(sectors(x, y, z).blocks);
 		}
 		else
 		{
@@ -217,12 +208,8 @@ void Compressor::load(std::ifstream& File, int x, int z)
 			// check if any blocks are present
 			if (rle.hasBlocks(cpos))
 			{
-				// copy data to engine side
-				if (sbase[y].hasBlocks() == false)
-					sbase[y].createBlocks();
-				
 				// decompress directly onto sectors sectorblock
-				rle.decompress(cpos, *sbase[y].blocks);
+				rle.decompress(cpos, sbase[y].blocks);
 			}
 			else
 			{	// had no blocks, just null it

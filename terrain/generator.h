@@ -1,14 +1,17 @@
 #ifndef TG_GENERATOR_HPP
 #define TG_GENERATOR_HPP
 
+#include <cmath>
+
 #define GEN_FULLHEIGHT 255
 #define GEN_WATERLEVEL 0.25
 #define GEN_WATERBLOCKS 64
 
-#define PI  3.141592653589793
-#define PI2 6.283185307179586
-#define degToRad 0.0174532925199433
-#define radToDeg 57.29577951308232
+static const double PI = std::atan(1.0) * 4.0;
+static const double PI2 = PI * 2.0;
+
+#define degToRad (PI / 180.0)
+#define radToDeg (180.0 / PI)
 
 // console
 extern void logText(const char* text);
@@ -56,6 +59,8 @@ typedef struct cl_rgb {
 	int r, g, b;
 	
 	cl_rgb() {}
+	cl_rgb(int RGB)
+		: r(RGB), g(RGB), b(RGB) {}
 	cl_rgb(int R, int G, int B)
 		: r(R), g(G), b(B) {}
 	

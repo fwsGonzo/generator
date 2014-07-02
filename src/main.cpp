@@ -55,8 +55,10 @@ void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFo
 int main(void)
 {
 	/// generator settings  ///
-	const int SECTORS_AXIS = 18;
-	const int AREA_RADIUS  =  1;
+	const int SECTORS_AXIS = 22;
+	const int AREA_RADIUS  = 0;
+	int baseWorldPosX = World::WORLD_CENTER - sectors.getXZ() / 2;
+	int baseWorldPosZ = baseWorldPosX;
 	/// ------------------- ///
 	
 	logger.open("generator.log");
@@ -72,7 +74,6 @@ int main(void)
 	/// initialize chunks backend ///
 	Chunks::init();
 	
-	const int MINIWORLD_XZ  = World::WORLD_CENTER - sectors.getXZ() / 2;
 	const int MINIWORLD_OFS = sectors.getXZ() - World::BORDER * 2;
 	
 	const int area_max = (1 + 2 * AREA_RADIUS) * (1 + 2 * AREA_RADIUS);
@@ -84,7 +85,7 @@ int main(void)
 	{
 		logger << Log::INFO << "Generating miniworld " << i++ << " of " << area_max << Log::ENDL;
 		
-		generate(gen, MINIWORLD_XZ + x * MINIWORLD_OFS, MINIWORLD_XZ + z * MINIWORLD_OFS, outFolder);
+		generate(gen, baseWorldPosX + x * MINIWORLD_OFS, baseWorldPosZ + z * MINIWORLD_OFS, outFolder);
 	}
 	
 	/// start game client ///
