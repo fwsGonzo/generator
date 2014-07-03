@@ -55,14 +55,14 @@ biome_t biomeGen(float gx, float gy)
 {
 	biome_t biome;
 	
-	int biomeValue = 13;
+	/*int biomeValue = 13;
 	biome.b[0] = biome.b[1] = biome.b[2] = biome.b[3] = biomeValue;
 	biome.w[0] = 1.0;
 	biome.w[1] = biome.w[2] = biome.w[3] = 0.0;
-	return biome;
+	return biome;*/
 	
 	// biome scale
-	const float BIOME_SCALE = 1.0f / 3000.0f;
+	const float BIOME_SCALE = 1.0f / 4000.0f;
 	gx *= BIOME_SCALE;
 	gy *= BIOME_SCALE;
 	

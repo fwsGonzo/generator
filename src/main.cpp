@@ -56,7 +56,7 @@ int main(void)
 {
 	/// generator settings  ///
 	const int SECTORS_AXIS = 38;
-	const int AREA_RADIUS  = 9;
+	const int AREA_RADIUS  = 11;
 	int baseWorldPosX = World::WORLD_CENTER; // - SECTORS_AXIS / 2;
 	int baseWorldPosZ = baseWorldPosX;
 	/// ------------------- ///
@@ -96,6 +96,7 @@ int main(void)
 	for (int z = -AREA_RADIUS; z <= AREA_RADIUS; z++)
 	{
 		logger << Log::INFO << "Generating miniworld " << i++ << " of " << NUM_ITERATIONS << Log::ENDL;
+		logger << Log::INFO << "Coordinates: " << x * MINIWORLD_OFS << ", " << z * MINIWORLD_OFS << Log::ENDL;
 		
 		generate(gen, baseWorldPosX + x * MINIWORLD_OFS, baseWorldPosZ + z * MINIWORLD_OFS, outFolder);
 	}

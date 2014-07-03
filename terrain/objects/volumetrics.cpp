@@ -61,6 +61,7 @@ void volumetricFillDown(int x, int y, int z, int mat, int depth, int travel)
 		}
 		setb(x, dy, z, mat);
 	}
+	if (dy <= GEN_WATERLEVEL) return;
 	dy++; // go back up
 	
 	// fill bottom, if possible (will not cause another fill immediately)

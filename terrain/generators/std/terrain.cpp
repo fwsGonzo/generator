@@ -468,8 +468,8 @@ float getnoise_desert(vec3 p)
 	float x = snoise2(p.x * 0.5, p.z * 0.5) + snoise2(p.x * 0.7, p.z * 0.7);
 	x *= 0.5; // normalize
 	
-	const float EDGE = 0.50;
-	const float RAMP_EDGE = 0.65;
+	const float EDGE = 0.45;
+	const float RAMP_EDGE = 0.60;
 	if (x > EDGE)
 	{
 		float linear = (x - EDGE) / (1.0 - EDGE);
