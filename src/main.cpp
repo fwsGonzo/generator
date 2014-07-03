@@ -55,9 +55,9 @@ void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFo
 int main(void)
 {
 	/// generator settings  ///
-	const int SECTORS_AXIS = 22;
-	const int AREA_RADIUS  = 0;
-	int baseWorldPosX = World::WORLD_CENTER - sectors.getXZ() / 2;
+	const int SECTORS_AXIS = 38;
+	const int AREA_RADIUS  = 9;
+	int baseWorldPosX = World::WORLD_CENTER; // - SECTORS_AXIS / 2;
 	int baseWorldPosZ = baseWorldPosX;
 	/// ------------------- ///
 	
@@ -67,31 +67,42 @@ int main(void)
 	std::string gameDirectory = "/home/gonzo/github/cppcraft/Debug/";
 	std::string outFolder = gameDirectory + "Worlds/test";
 	
+	// delete old *.compressed files
+	int ret = chdir(outFolder.c_str());
+	if (ret)
+	{
+		logger << Log::INFO << "chdir: Could not access output folder: " << outFolder << Log::ENDL;
+		return EXIT_FAILURE;
+	}
+	ret = system("/bin/rm -v *.compressed");
+	if (ret)
+	{
+		logger << Log::INFO << "rm: Could not delete old compressed files" << Log::ENDL;
+	}
+	
+	/// initialize sectors ///
 	sectors.init(SECTORS_AXIS);
-	
+	/// initialize generator ///
 	Generator gen(8);
-	
 	/// initialize chunks backend ///
 	Chunks::init();
 	
-	const int MINIWORLD_OFS = sectors.getXZ() - World::BORDER * 2;
-	
-	const int area_max = (1 + 2 * AREA_RADIUS) * (1 + 2 * AREA_RADIUS);
+	const int MINIWORLD_OFS  = sectors.getXZ() - World::BORDER * 2;
+	const int NUM_ITERATIONS = (1 + 2 * AREA_RADIUS) * (1 + 2 * AREA_RADIUS);
 	
 	/// generate part of the world ///
 	int i = 1;
 	for (int x = -AREA_RADIUS; x <= AREA_RADIUS; x++)
 	for (int z = -AREA_RADIUS; z <= AREA_RADIUS; z++)
 	{
-		logger << Log::INFO << "Generating miniworld " << i++ << " of " << area_max << Log::ENDL;
+		logger << Log::INFO << "Generating miniworld " << i++ << " of " << NUM_ITERATIONS << Log::ENDL;
 		
 		generate(gen, baseWorldPosX + x * MINIWORLD_OFS, baseWorldPosZ + z * MINIWORLD_OFS, outFolder);
 	}
 	
 	/// start game client ///
-	chdir(gameDirectory.c_str());
-	char* const argv[1] = {0};
-	return execv("cppcraft", argv);
+	(void) chdir(gameDirectory.c_str());
+	return system("./cppcraft");
 }
 
 void logText(const char* text)

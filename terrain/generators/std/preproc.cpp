@@ -26,7 +26,7 @@ void preProcess(genthread_t* l_thread)
 	
 	int dx, dy, dz;
 	block *lastb, *b;
-	block airblock = (block) {0, 0, 0};
+	block airblock; airblock.id = 0;
 	int counter;
 	int air, treecount;
 	
@@ -71,15 +71,7 @@ void preProcess(genthread_t* l_thread)
 								// fill potential volume (above)
 								if (rand > 0.9)
 								{
-									int v = volumetricFill(dx, dy, dz, _WATER, 40);
-									if (!v)
-									{
-										v = volumetricFill(dx, dy, dz, _WATER, 32);
-										
-										if (!v)
-										v = volumetricFill(dx, dy, dz, _WATER, 16);
-									}
-									
+									volumetricFill(dx, dy, dz, _WATER);
 								}
 								
 							} // air to soil

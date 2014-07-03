@@ -10,25 +10,13 @@
 
 void testGen(Generator& generator)
 {
+	// generate terrain 2d data
 	logText("-- stdGen 2D --");
-	
-	// generate biomes
 	generator.generate(biomeGenerator, true);
 	
+	// generate terrain
 	logText("-- stdGen 3D --");
-	
-	// generate land
 	generator.generate(terrainGenerator, false);
-	
-	logText("-- done --");
-}
-
-void finalpassBiome(Generator& generator)
-{
-	// generate biomes
-	generator.generate(biomeGenerator, false);
-	// post-processing (after objects)
-	generator.generate(postPostProcess, false);
 }
 
 void testPP(Generator& generator)
@@ -41,6 +29,4 @@ void testPP(Generator& generator)
 	generator.generate(areaPostProcess, false);
 	// post-processing (after objects)
 	generator.generate(postPostProcess, false);
-	
-	logText("-- done --");
 }

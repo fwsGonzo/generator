@@ -28,14 +28,16 @@ inline float ramp(float x, float p)
 
 float getnoise_caves(vec3 p)
 {
-	vec3 npos = p * vec3(0.001, 2.0, 0.001);
+	vec3 npos = p * vec3(0.004, 2.5, 0.004);
 	
 	float n1 = snoise3(npos.x, npos.y, npos.z);
 	
-	const float CAVE_TRESHOLD = 0.22;
-	if (n1 >= 0.0 && n1 < CAVE_TRESHOLD)
+	const float CAVE_TRESHOLD = 0.11f;
+	const float EDGE = CAVE_TRESHOLD * 0.2f;
+	
+	if (n1 > -CAVE_TRESHOLD && n1 < CAVE_TRESHOLD)
 	{
-		npos *= vec3(12.0, 2.0, 12.0);
+		npos = p * vec3(0.02, 6.0, 0.02);
 		
 		// cross noise
 		float n2 = snoise3(npos.x, npos.y, npos.z);
@@ -43,13 +45,21 @@ float getnoise_caves(vec3 p)
 		float n4 = snoise3(npos.x * 0.2, npos.y + 7.0, npos.z * 0.2);
 		
 		// caves increase in density as we go lower
-		float DEPTH_DENSITY = 0.1 + (1.0 - p.y * p.y) * 0.2;
+		float DEPTH_DENSITY = 0.08 + (1.0 - p.y * p.y) * 0.2;
 		float cavenoise = std::abs(n2 + n3 + n4);
 		
 		if (cavenoise < DEPTH_DENSITY)
 		{
+			// find edge
+			if (std::abs(n1) > CAVE_TRESHOLD - EDGE)
+			{
+				n1 -= CAVE_TRESHOLD - EDGE;
+				n1 /= EDGE;
+			}
+			else n1 = 1.0f;
+			
 			float t = 1.0 - cavenoise / DEPTH_DENSITY;
-			return -t * 0.1;
+			return -t * 0.1 * n1;
 		}
 	}
 	return 0.1;
@@ -57,8 +67,8 @@ float getnoise_caves(vec3 p)
 
 float getnoise_icecap(vec3 p)
 {
-	p.x *= 0.003;
-	p.z *= 0.003;
+	p.x *= 0.005;
+	p.z *= 0.005;
 	float n1 = sfreq2d(p, 0.5);
 	float n2 = sfreq2d(p, 0.15);
 	vec3 npos = p / 4.0; // the relationship between n1 and npos is 4 / 0.5
@@ -67,15 +77,16 @@ float getnoise_icecap(vec3 p)
 	const float COSN_FAT   = 0.0;
 	float COSN_CUTS  = 0.5 - p.y * 0.5;
 	
-	#define COSN_icecap cosnoise(npos, n1, 0.5, p.y * 2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_icecap1 cosnoise(npos, n1, 1.0, 4.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
+	#define COSN_icecap2 cosnoise(npos, n2, 1.0, 4.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
 	
-	return p.y - 0.3 + COSN_icecap * 0.05 + n2 * 0.1;
+	return p.y - 0.3 + COSN_icecap1 * 0.05 + COSN_icecap2 * 0.1;
 }
 
 float getnoise_snow(vec3 p)
 {
-	p.x *= 0.003;
-	p.z *= 0.003;
+	p.x *= 0.002;
+	p.z *= 0.002;
 	float n1 = sfreq(p, 3.0);
 	
 	// peaks
@@ -93,7 +104,8 @@ float getnoise_snow(vec3 p)
 	
 	#define COSN cosnoise(npos, n1, 0.5, p.y * 2.0, COSN_CURVE, COSN_FAT, COSN_CUTS)
 	
-	n1 = (p.y - 0.25) * p.y - n3 * n3 * 0.25 + n4 * 0.1 + COSN * 0.25;
+	n1 = (p.y - 0.25) * p.y - n3 * n3 * 0.25 + n4 * 0.1 + COSN * 0.15;
+	//n1 = COSN;
 	// reduce height by contintental noise
 	n1 += c1 * 0.2 + c2 * 0.1;
 	
@@ -103,7 +115,7 @@ float getnoise_snow(vec3 p)
 	n1 -= dist * dist * (1.0 - c2 + c1) * 0.75;
 	
 	// ultra-scale down density above clouds
-	const float scaledown = 0.8;
+	/*const float scaledown = 0.8;
 	if (p.y > scaledown)
 	{
 		float dy = (p.y - scaledown) / (1.0 - scaledown);
@@ -114,7 +126,7 @@ float getnoise_snow(vec3 p)
 		// scale up seafloor
 		float dy = (1.0 - p.y / 0.2);
 		n1 -= dy * dy * 1.0;
-	}
+	}*/
 	
 	return n1;
 	
@@ -122,8 +134,8 @@ float getnoise_snow(vec3 p)
 
 float getnoise_autumn(vec3 p)
 {
-	p.x *= 0.003;
-	p.z *= 0.003;
+	p.x *= 0.0025;
+	p.z *= 0.0025;
 	
 	const float noise0 = 0.25;
 	const float noise1 = 1.0, noise_rel1 = 0.5;
@@ -150,7 +162,7 @@ float getnoise_autumn(vec3 p)
 	float calm = n3 * 0.5 + 0.5;
 	
 	// rings
-	n1 = p.y + 0.05 + COSN_aut * (1.0 + landscape) * 0.3 + n0 * n2 * 0.05;
+	n1 = p.y + 0.1 + COSN_aut * (1.0 + landscape) * 0.3 + n0 * n2 * 0.05;
 	// ground
 	n1 = n1 * (1.0 - calm) + (p.y - 0.4 + n3 * 0.05) * calm;
 	
@@ -398,8 +410,8 @@ float getnoise_marsh(vec3 p)
 float getnoise_jungle(vec3 p)
 {
 	float inv_y = 1.0 - p.y;
-	p.x *= 0.001;
-	p.z *= 0.001;
+	p.x *= 0.003;
+	p.z *= 0.003;
 	
 	const float noise1 = 1.0, noise_rel1 = 1.0 / 5.0;
 	const float noise2 = 8.0, noise_rel2 = 16.0;
@@ -443,8 +455,8 @@ float getnoise_jungle(vec3 p)
 
 float getnoise_desert(vec3 p)
 {
-	p.x *= 0.001;
-	p.z *= 0.001;
+	p.x *= 0.003;
+	p.z *= 0.003;
 	
 	float s = barchans(p.x + snoise1(p.z*0.4)*1.0, p.z + snoise2(p.z*0.2, p.x*0.2)*0.3);
 	float n = snoise2(p.x*0.05, p.z*0.05);
@@ -456,8 +468,8 @@ float getnoise_desert(vec3 p)
 	float x = snoise2(p.x * 0.5, p.z * 0.5) + snoise2(p.x * 0.7, p.z * 0.7);
 	x *= 0.5; // normalize
 	
-	const float EDGE = 0.1;
-	
+	const float EDGE = 0.50;
+	const float RAMP_EDGE = 0.65;
 	if (x > EDGE)
 	{
 		float linear = (x - EDGE) / (1.0 - EDGE);
@@ -468,14 +480,14 @@ float getnoise_desert(vec3 p)
 		// apply height
 		float height = power * 0.35 + snoise2(p.x * 0.7, p.z * 0.7) * 0.01;
 		
-		if (x > 0.25)
+		if (x > RAMP_EDGE)
 		{
 			if (s < height) s = -1.0;
 			else s = 1.0;
 		}
 		else
 		{
-			x = (x - EDGE) / (0.25 - EDGE);
+			x = (x - EDGE) / (RAMP_EDGE - EDGE);
 			s -= x * x * height * 0.6;
 		}
 	}

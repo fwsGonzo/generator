@@ -27,6 +27,39 @@ void otreeSphere(int gx, int gy, int gz)
 	
 }
 
+void createTreeOval(int gx, int gy, int gz, int maxheight)
+{
+	// leafs
+	int lheight = maxheight * 0.85; // height of sphere
+	int lrad = lheight * 0.5;       // sphere radius offset from lheight
+	int leaf_y  = maxheight * 0.15; // offsety of sphere
+	float maxrad = maxheight * 0.32;
+	
+	for (int dy = 0; dy < lheight; dy++)
+	{
+		float rad = std::pow(1.0 - std::abs(dy - lrad) / (float)lrad, 0.25) * maxrad;
+		float rad_sq = rad*rad;
+		
+		for (int dx = -rad; dx <= rad; dx++)
+		for (int dz = -rad; dz <= rad; dz++)
+		{
+			float r = dx*dx + dz*dz;
+			if (r <= rad_sq)
+			{
+				r = std::sqrt(r);
+				if ((r < int(rad * 0.6) && dy < lheight) || randf(gx+dx, gy+leaf_y+dy, gz+dz) >= 0.5)
+				{
+					setb(gx+dx, gy + leaf_y + dy, gz+dz, _LEAF_LEAFS, false);
+				}
+			}
+		}
+	}
+	
+	// trunk
+	for (int dy = gy; dy < gy + maxheight * 0.63; dy++)
+		setb(gx, dy, gz, _WOODBJORK);
+}
+
 void otreeBirch(int gx, int gy, int gz, int height)
 {
 	int trunkh = height * 0.75;
@@ -53,6 +86,8 @@ void otreeBirch(int gx, int gy, int gz, int height)
 
 void otreeSabal(int gx, int gy, int gz, int height)
 {
+	if (coretest(gx, gy, gz, 0, 0, height) == false) return;
+	
 	int x = gx, y = gy, z = gz;
 	
 	int leaflen = 2 + height / 2.0;

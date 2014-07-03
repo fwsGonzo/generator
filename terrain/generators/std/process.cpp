@@ -26,7 +26,7 @@ block_t c_desert[3] = { _DESERTFLOWER, _BUSH_MRSPIKY, _BUSH4 };
 block_t terrain_soil  [T_TERRAINS]  = { _SNOWSOIL, _SNOWSOIL,    _GREENSOIL,    _GREENSOIL,    _GREENSOIL,    _GREENSOIL,    _GREENSOIL,     _DESERTSAND };
 block_t terrain_gravel[T_TERRAINS]  = { _SNOWSOIL, _GRAVEL2,     _GRAVEL2,      _GRAVEL1,      _GRAVEL1,      _GRAVEL1,      _GRAVEL1,       _GRAVEL1    };
 block_t terrain_grass [T_TERRAINS]  = { _SNOWSOIL, _SNOWGRASS_S, _GREENGRASS_S, _GREENGRASS_S, _GREENGRASS_S, _GREENGRASS_S, _GREENGRASS_S,  _DESERTSAND };
-block_t terrain_beach [T_TERRAINS]  = { _SANDBEACH,_SANDBEACH,   _SANDBEACH,    _SANDBEACH,    _SANDBEACH,    _GREENSOIL,    _GREENSOIL,     _SANDBEACH };
+block_t terrain_beach [T_TERRAINS]  = { _SNOWSOIL, _SANDBEACH,   _SANDBEACH,    _SANDBEACH,    _SANDBEACH,    _GREENSOIL,    _GREENSOIL,     _SANDBEACH };
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 #define getCross(c_array) c_array[ (int)(randf(dx, dy+1, dz) * ARRAY_SIZE(c_array)) ]
@@ -202,58 +202,42 @@ void areaPostProcess(genthread_t* l_thread)
 						
 						if (terrain == T_ICECAP && b->id == _SNOWGRASS)
 						{
-							if (rand < 0.03 && air > 32)
+							// icy terrain
+							if (rand < 0.025 && air > 16)
 							{
-								const int distance = 3;
-								
-								if ((dx & distance) == 0  &&  (dz & distance) == 0)
+								if (snoise2(p.x * 0.01, p.z * 0.01) > 0.35)
 								{
-									if (snoise2(p.x * 0.018, p.z * 0.018) > 0.25)
-									{
-										//int height = 8 + randf(dx, dy+1, dz) * 12;
-										
-										// top cap
-										//if (dy + height < 200)
-										//	ingenPine(dx, dy+1, dz, height);
-									}
-									else if (rand < 0.01)
-									{	// setting a cross using 0 = no overwrite, 0 = facing (crosses don't have facing)
-										setb(dx, dy+1, dz, _FLOWERRED, false);
-									}
+									int height = 9 + randf(dx, dy+1, dz) * 13;
+									
+									// top cap
+									createIcePine(dx, dy+1, dz, height);
 								}
-								
-							} // rand / air
+							}
 						}
 						else if (terrain == T_SNOW && b->id == _SNOWGRASS_S)
 						{
 							// snowmobile terrain
 							if (rand < 0.025 && air > 16)
 							{
-								const int distance = 7;
-								
-								if ((x & distance) == 0  &&  (z & distance) == 0)
+								if (dy < 130 && snoise2(p.x * 0.01, p.z * 0.01) > 0.35)
 								{
-									if (snoise2(p.x * 0.018, p.z * 0.018) > 0.25)
+									int height = 9 + randf(dx, dy+1, dz) * 12;
+									
+									// top cap
+									createPine(dx, dy+1, dz, height);
+								}
+								else if (rand < 0.05)
+								{
+									// grass
+									if (snoise2(p.x * 0.40, p.z * 0.40) > 0.0)
 									{
-										//int height = 8 + randf(dx, dy+1, dz) * 12;
-										
-										// top cap
-										//if (dy + height < 200)
-										//	ingenPine(dx, dy+1, dz, height);
+										setb(dx, dy+1, dz, _PLANT_DRYBROWN, false);
 									}
-									else if (rand < 0.05)
-									{
-										// grass
-										if (snoise2(p.x * 0.40, p.z * 0.40) > 0.0)
-										{
-											setb(dx, dy+1, dz, _PLANT_DRYBROWN, false);
-										}
-										
-									}
-									else if (rand < 0.01)
-									{	// setting a cross using 0 = no overwrite, 0 = facing (crosses don't have facing)
-										setb(dx, dy+1, dz, _FLOWERRED, false);
-									}
+									
+								}
+								else if (rand < 0.01)
+								{	// setting a cross using 0 = no overwrite, 0 = facing (crosses don't have facing)
+									setb(dx, dy+1, dz, _FLOWERRED, false);
 								}
 								
 							} // rand / air
@@ -294,14 +278,14 @@ void areaPostProcess(genthread_t* l_thread)
 							}
 							else if (rand < 0.03 && air > 18)
 							{
-								if (snoise2(p.x * 0.015, p.z * 0.015) < -0.25)
+								if (snoise2(p.x * 0.005, p.z * 0.005) < -0.25)
 								{
 									int height = 8 + randf(dx, dy+1, dz) * 12;
 									if (dy + height < GEN_FULLHEIGHT)
 									{	if (rand > 0.015)
 											otreeBirch(dx, dy+1, dz, height);
-										//else
-										//	ingenTreeA(dx, dy+1, dz, height );
+										else
+											createTreeOval(dx, dy+1, dz, height);
 									}
 								}
 							}
@@ -377,7 +361,7 @@ void areaPostProcess(genthread_t* l_thread)
 								
 							} else if (rand < 0.25) {
 								
-								if (snoise2(p.x * 0.02, p.z * 0.02) > 0.0)
+								if (snoise2(p.x * 0.005, p.z * 0.005) > 0.0)
 								{
 									if (rand > 0.1)
 										setb(dx, dy+1, dz, getCrossExt(c_jungle, 5), 0, 0 );
@@ -393,7 +377,7 @@ void areaPostProcess(genthread_t* l_thread)
 						else if (terrain == T_JUNGLE && b->id == _GREENGRASS_S)
 						{
 							// jungle terrain
-							if (rand < 0.00075 && air > 40)
+							if (rand < 0.0075 && air > 40)
 							{
 								int height = 16 + randf(dx, dy-1, dz) * 32;
 								
@@ -402,8 +386,7 @@ void areaPostProcess(genthread_t* l_thread)
 							}
 							else if (rand < 0.25)
 							{
-								
-								if (snoise2(p.x * 0.20, p.z * 0.20) > -0.15)
+								if (snoise2(p.x * 0.01, p.z * 0.01) > -0.15)
 								{
 									if (rand > 0.1)
 										setb(dx, dy+1, dz, getCrossExt(c_jungle, 5), 0, 0 );
@@ -437,10 +420,9 @@ void areaPostProcess(genthread_t* l_thread)
 							else if (rand < 0.007 && air > 16)
 							{
 								int water = discover(dx, dy+1, dz, _WATER);
-								
 								if (water)
 								{
-									if (rand < 0.0015 && air > 24)
+									if (rand < 0.015 && air > 24)
 									{
 										int height = 12 + randf(dx, dy+1, dz) * 20;
 										otreeSabal(dx, dy+1, dz, height);
@@ -449,7 +431,7 @@ void areaPostProcess(genthread_t* l_thread)
 									else
 									{
 										//int height = 10 + randf(dx, dy+1, dz) * 8;
-										//ingenPalm(dx, dy+1, dz, height );
+										//createPalm(dx, dy+1, dz, height );
 									}
 								}
 								

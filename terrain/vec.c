@@ -1,6 +1,10 @@
 #include "vec.h"
 #include <cmath>
 
+// todo:
+// marsh (colors, trees)
+// autumn
+
 using namespace library;
 
 vec3 getnormal3(float n10, float n01, float delta)
@@ -26,8 +30,8 @@ vec3 getnormal3(float n10, float n01, float delta)
 	}
 
 	vec3 c;
-	c.x =   (y1 * z2);
-	c.y = - (z2 * x1);
-	c.z =   (x1 * y2);
+	c.x =  (y1 * z2);
+	c.y = -(z2 * x1);
+	c.z =  (x1 * y2);
 	return c;
 }

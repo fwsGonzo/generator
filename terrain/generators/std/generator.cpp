@@ -144,7 +144,7 @@ void terrainGenerator(genthread_t* l_thread)
 	#define ngrid 8
 	#define bgrid Sector::BLOCKS_XZ
 	
-	const int grid_pfac = Sector::BLOCKS_XZ / ngrid;
+	static const int grid_pfac = Sector::BLOCKS_XZ / ngrid;
 	// biome data
 	biome_t biomearray[ngrid+1][ngrid+1];
 	// noise data
@@ -174,7 +174,7 @@ void terrainGenerator(genthread_t* l_thread)
 				biome = biomeGen(p.x, p.z);
 			
 			// beach height/level variance
-			beachhead[x][z] = snoise2(p.x * 0.006, p.z * 0.006);
+			beachhead[x][z] = snoise2(p.x * 0.005f, p.z * 0.005f);
 		}
 	}
 	
@@ -199,7 +199,7 @@ void terrainGenerator(genthread_t* l_thread)
 				
 				for (int i = 0; i < 4; i++)
 				{
-					if (biome.w[i] < 0.01) continue;
+					if (biome.w[i] < 0.005f) continue;
 					
 					int terrain_id = toTerrain(biome.b[i]);
 					switch (terrain_id)
@@ -264,7 +264,7 @@ void terrainGenerator(genthread_t* l_thread)
 				float density = mix( w0, w1, frz );
 				// density weights //
 				
-				if (y <= GEN_WATERBLOCKS+1 || density < 0.0)
+				if (y <= GEN_WATERBLOCKS+1 || density < 0.0f)
 				{
 					// caves density (high precision) //
 					float caves = getnoise_caves(p);

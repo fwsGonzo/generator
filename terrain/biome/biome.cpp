@@ -172,7 +172,8 @@ void biomeGenerator(genthread_t* l_thread)
 	
 	vec3 p;
 	biome_t biome;
-	cl_rgb biomecl[CL_MAX], tempcl;
+	cl_rgb biomecl[CL_MAX];
+	cl_rgb cl_terrain(0), cl_inverted(0);
 	cl_rgb zeroColor(0);
 	
 	for (int x = 0; x < Sector::BLOCKS_XZ; x++)
@@ -182,12 +183,9 @@ void biomeGenerator(genthread_t* l_thread)
 	{
 		p.z = l_thread->p.z + z;
 		
-		const float GRASS_GRAD_WEIGHT = 0.7;
-		const float TREES_GRAD_WEIGHT = 0.6;
-		const float STONE_GRAD_WEIGHT = 0.75;
-		
-		float random1 = 8.f + snoise2(p.x*0.0011, p.z*0.0011) * 7.0 + snoise2(p.x*0.015, p.z*0.015) * 1.0;
-		float random2 = 8.f + snoise2(p.z*0.0021, p.x*0.0021) * 7.0 + snoise2(p.x*0.016, p.z*0.016) * 1.0;
+		// scale the random values from [0, 16) (multiple of 4)
+		float random1 = 8.0f + snoise2(p.x*0.0011f, p.z*0.0011f) * 7.0f + snoise2(p.x*0.015f, p.z*0.015f) * 1.0f;
+		float random2 = 8.0f + snoise2(p.z*0.0021f, p.x*0.0021f) * 7.0f + snoise2(p.x*0.016f, p.z*0.016f) * 1.0f;
 		
 		// don't scale p.x and p.z!!!!!!!!!!!!
 		biome = biomeGen(p.x, p.z);
@@ -196,14 +194,14 @@ void biomeGenerator(genthread_t* l_thread)
 		for (int i = 0; i < CL_MAX; i++)
 			biomecl[i] = zeroColor;
 		
-		float bigw = 0.0;
+		float bigw = 0.0f;
 		int   bigt = 0;
 		
 		#define weight    biome.w[i]
 		
 		for (int i = 0; i < 4; i++)
 		{
-			if (weight == 0.0) continue;
+			if (weight == 0.0f) continue;
 			
 			int terrain = toTerrain(biome.b[i]);
 			
@@ -220,44 +218,55 @@ void biomeGenerator(genthread_t* l_thread)
 			{
 			case T_ICECAP:
 			case T_SNOW:
-				tempcl = getGradient4x4(random1, random2, clAutumnColors);
+				cl_terrain  = getGradient4x4(random1, random2, clWinterColors);
+				cl_inverted = getGradient4x4(random2, random1, clWinterColors);
 				break;
 			case T_AUTUMN:
-				tempcl = getGradient4x4(random1, random2, clAutumnColors);
+				cl_terrain  = getGradient4x4(random1, random2, clAutumnColors);
+				cl_inverted = getGradient4x4(random2, random1, clAutumnColors);
 				break;
 			case T_ISLANDS:
-				tempcl = getGradient4x4(random1, random2, clIslandColors);
+				cl_terrain  = getGradient4x4(random1, random2, clIslandColors);
+				cl_inverted = getGradient4x4(random2, random1, clIslandColors);
 				break;
 			case T_GRASS:
-				tempcl = getGradient4x4(random1, random2, clGrassyColors);
+				cl_terrain  = getGradient4x4(random1, random2, clGrassyColors);
+				cl_inverted = getGradient4x4(random2, random1, clGrassyColors);
 				break;
+			case T_MARSH:
 			case T_JUNGLE:
-				tempcl = getGradient4x4(random1, random2, clAutumnColors);
+				cl_terrain  = getGradient4x4(random1, random2, clJungleColors);
+				cl_inverted = getGradient4x4(random2, random1, clJungleColors);
+				break;
+			case T_DESERT:
+				cl_terrain  = getGradient4x4(random1, random2, clDesertColors);
+				cl_inverted = getGradient4x4(random2, random1, clDesertColors);
 				break;
 			}
 			
-			biomecl[CL_GRASS] = tempcl;
-			biomecl[CL_CROSS] = tempcl;
+			addColorv(&biomecl[CL_GRASS], &cl_terrain, weight);
+			addColorv(&biomecl[CL_CROSS], &cl_terrain, weight);
 			// tree color
-			biomecl[CL_TREES] = mixColor(&biomecl[CL_TREES], &tempcl, TREES_GRAD_WEIGHT);
+			addColorv(&biomecl[CL_TREES], &cl_inverted, weight);
 			
-			// stone color
-			tempcl = getStoneColor(terrain);
-			addColorv(&biomecl[CL_STONE], &tempcl, weight);
+			// stone base color
+			cl_terrain = getStoneColor(terrain);
+			addColorv(&biomecl[CL_STONE], &cl_terrain, weight);
 		}
 		
-		// set terrain-id based on the strongest weight
-		flatland(x, z).terrain = bigt;
-		
-		// always modulate stone color
-		tempcl = getGradientStone(random1, random2);
-		biomecl[CL_STONE] = mixColor(&biomecl[CL_STONE], &tempcl, STONE_GRAD_WEIGHT);
+		// modulate stone color
+		//cl_terrain = getGradientStone(random1, random2);
+		//biomecl[CL_STONE] = mixColor(&biomecl[CL_STONE], &cl_terrain, 0.5);
 		
 		// set vertex colors all in one swoooop
+		Flatland::flatdata_t& fdata = flatland(x, z);
 		for (int i = 0; i < CL_MAX; i++)
 		{
-			flatland(x, z).color[i] = toColor(biomecl[i]);
+			fdata.color[i] = toColor(biomecl[i]);
 		}
+		// set terrain-id based on the strongest weight
+		fdata.terrain = bigt;
+		// remember weights for terrain generator stage
 		flatland.setWeights(x, z, biome);
 		
 	} // z

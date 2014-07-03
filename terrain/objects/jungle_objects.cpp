@@ -103,6 +103,8 @@ void ingenJungleBranch(int gx, int gy, int gz, int height, float lowrad, bool co
 
 void ingenJungleTree(int gx, int gy, int gz, int height)
 {
+	if (coretest(gx, gy, gz, 1, 1, height) == false) return;
+	
 	int lowrad = (height / 40) * 3;
 	
 	ingenJungleBranch(gx, gy, gz, height, lowrad, true);
