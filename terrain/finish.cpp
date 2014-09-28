@@ -22,5 +22,6 @@ void threaded_finish(genthread_t* gt)
 
 void finishSectors(Generator& gen)
 {
+	logText("-- finish() --");
 	gen.generate(threaded_finish, true);
 }

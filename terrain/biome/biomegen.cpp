@@ -39,14 +39,14 @@ int cols[21][3] =
 	{ 200,177,144 },  // desert
 	{ 211,157,111 },  // red desert
 	
-	{ 70, 68, 37 },  // wet/dry savanna
+	{  70, 68, 37 },  // wet/dry savanna
 	
-	{  35, 48, 16 }, // monsoon
-	{  36, 85, 19 }, // rainforest
-	{ 156,138, 89 }, // dry
+	{  35, 48, 16 },  // monsoon
+	{  36, 85, 19 },  // rainforest
+	{ 156,138, 89 },  // dry
 	
-	{ 167,150,116 }, // chinese desert
-	{  31, 65, 13 }  // amazonas rf
+	{ 167,150,116 },  // chinese desert
+	{  31, 65, 13 }   // amazonas rf
 };
 //#define COLINT(cc,c1,c2,f) { cc[0] = c1[0]+(c2[0]-c1[0])*f; cc[1] = c1[1]+(c2[1]-c1[1])*f; cc[2] = c1[2]+(c2[2]-c1[2])*f; }
 
@@ -55,11 +55,11 @@ biome_t biomeGen(float gx, float gy)
 {
 	biome_t biome;
 	
-	/*int biomeValue = 13;
+	int biomeValue = 5;
 	biome.b[0] = biome.b[1] = biome.b[2] = biome.b[3] = biomeValue;
 	biome.w[0] = 1.0;
 	biome.w[1] = biome.w[2] = biome.w[3] = 0.0;
-	return biome;*/
+	return biome;
 	
 	// biome scale
 	const float BIOME_SCALE = 1.0f / 4000.0f;
@@ -75,14 +75,13 @@ biome_t biomeGen(float gx, float gy)
 	
 	b1 = powf(b1, climateBias);
 	
-	b1 *= 8.4;
+	b1 *= 8.421; // b1 only reaches 0.95
 	b2 *= 8.0;
 	if (b1 < 0) b1 = 0; else if (b1 >= 7.99999) b1 = 7.99999;
 	if (b2 < 0) b2 = 0; else if (b2 >= 7.99999) b2 = 7.99999;
-	// integral
-	int ib1 = (int)b1, ib2 = (int)b2;
-	// fractional
-	b1 -= ib1;  b2 -= ib2;
+	// integral			// fractional
+	int ib1 = (int)b1;  b1 -= ib1;
+	int ib2 = (int)b2;  b2 -= ib2;
 	
 	// main biome (this doesn't always have the strongest weight!)
 	biome.b[0] = biomeTable[ib1][ib2];
@@ -111,15 +110,14 @@ biome_t biomeGen(float gx, float gy)
 			biome.w[1] = c1 * (1 - c2);
 			biome.w[2] = (1 - c1) * c2;
 			biome.w[3] = c1 * c2;
-			
-		} else {
-			
+		}
+		else
+		{
 			biome.w[0] = 1.0 - c1;
 			biome.w[1] = c1;
 			// reset remaining
 			biome.w[2] = 0.0f;
 			biome.w[3] = 0.0f;
-			
 		}
 	}
 	else if (b2 > edge)
@@ -135,15 +133,14 @@ biome_t biomeGen(float gx, float gy)
 		// reset remaining
 		biome.w[2] = 0.0f;
 		biome.w[3] = 0.0f;
-		
-	} else {
-		
+	}
+	else
+	{
 		// only one biome
 		biome.w[0] = 1.0;
 		biome.w[1] = 0.0;
 		biome.w[2] = 0.0;
 		biome.w[3] = 0.0;
-		
 	}
 	
 	return biome;

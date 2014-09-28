@@ -40,7 +40,6 @@ void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFo
 	std::cout << "Time: " << t.getDeltaTime() << std::endl;
 #endif
 	
-	std::cout << "Finishing sectors" << std::endl;
 	t.startNewRound();
 	/// finish sectors (count blocks/lights etc.) ///
 	finishSectors(gen);
@@ -52,29 +51,45 @@ void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFo
 	Chunks::compress(outFolder);
 }
 
-int main(void)
+#include <stdio.h>
+
+int main(int argc, char* argv[])
 {
-	/// generator settings  ///
-	const int SECTORS_AXIS = 38;
-	const int AREA_RADIUS  = 11;
-	int baseWorldPosX = World::WORLD_CENTER; // - SECTORS_AXIS / 2;
-	int baseWorldPosZ = baseWorldPosX;
-	/// ------------------- ///
-	
-	logger.open("generator.log");
-	logger << Log::INFO << "* Starting up generator..." << Log::ENDL;
-	
-	std::string gameDirectory = "/home/gonzo/github/cppcraft/Debug/";
-	std::string outFolder = gameDirectory + "Worlds/test";
-	
-	// delete old *.compressed files
-	int ret = chdir(outFolder.c_str());
-	if (ret)
+	if (argc < 3)
 	{
-		logger << Log::INFO << "chdir: Could not access output folder: " << outFolder << Log::ENDL;
+		std::cout << "generator [nx] [nz]" << std::endl;
+		std::cout << "" << std::endl;
+		return EXIT_SUCCESS;
+	}
+	
+	int nx, nz;
+	if ((nx = atoi(argv[1])) <= 0)
+	{
+		std::cout << "invalid value for [nx] in conversion to integer" << std::endl;
 		return EXIT_FAILURE;
 	}
-	ret = system("/bin/rm -v *.compressed");
+	if ((nz = atoi(argv[2])) <= 0)
+	{
+		std::cout << "invalid value for [nz] in conversion to integer" << std::endl;
+		return EXIT_FAILURE;
+	}
+	
+	/// generator settings  ///
+	const std::string outFolder = "./world";
+	const int NETWORK_SIZE = 256;
+	const int NETWORK_X = nx * NETWORK_SIZE;
+	const int NETWORK_Z = nz * NETWORK_SIZE;
+	
+	const int SECTORS_AXIS = 38;
+	const int NETWORK_LEN  = NETWORK_SIZE / (SECTORS_AXIS - 2 * World::BORDER);
+	/// ------------------- ///
+	
+	//logger.open("generator.log");
+	logger << Log::INFO << "* Starting up generator..." << Log::ENDL;
+	
+	// delete old *.compressed files
+	std::string removeString = "/bin/rm -v " + outFolder + "/*.compressed";
+	int ret = system(removeString.c_str());
 	if (ret)
 	{
 		logger << Log::INFO << "rm: Could not delete old compressed files" << Log::ENDL;
@@ -87,23 +102,29 @@ int main(void)
 	/// initialize chunks backend ///
 	Chunks::init();
 	
+	logger << Log::INFO << "Generating network coordinates: " << nx << ", " << nz << Log::ENDL;
+	logger << Log::INFO << "---------------------------------------------" << Log::ENDL;
+	
 	const int MINIWORLD_OFS  = sectors.getXZ() - World::BORDER * 2;
-	const int NUM_ITERATIONS = (1 + 2 * AREA_RADIUS) * (1 + 2 * AREA_RADIUS);
+	const int NUM_ITERATIONS = NETWORK_LEN * NETWORK_LEN;
 	
 	/// generate part of the world ///
 	int i = 1;
-	for (int x = -AREA_RADIUS; x <= AREA_RADIUS; x++)
-	for (int z = -AREA_RADIUS; z <= AREA_RADIUS; z++)
+	for (int x = 0; x < NETWORK_LEN; x++)
+	for (int z = 0; z < NETWORK_LEN; z++)
 	{
 		logger << Log::INFO << "Generating miniworld " << i++ << " of " << NUM_ITERATIONS << Log::ENDL;
-		logger << Log::INFO << "Coordinates: " << x * MINIWORLD_OFS << ", " << z * MINIWORLD_OFS << Log::ENDL;
+		logger << Log::INFO << "Internal coordinates: " << x << ", " << z << Log::ENDL;
 		
-		generate(gen, baseWorldPosX + x * MINIWORLD_OFS, baseWorldPosZ + z * MINIWORLD_OFS, outFolder);
+		generate(gen, NETWORK_X + x * MINIWORLD_OFS, NETWORK_Z + z * MINIWORLD_OFS, outFolder);
 	}
 	
 	/// start game client ///
-	(void) chdir(gameDirectory.c_str());
-	return system("./cppcraft");
+	//(void) chdir(gameDirectory.c_str());
+	//return system("./cppcraft");
+	/// done (tm) ///
+	logger << Log::INFO << "Done (" << i << " iterations)" << Log::ENDL;
+	return EXIT_SUCCESS;
 }
 
 void logText(const char* text)

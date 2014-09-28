@@ -115,19 +115,19 @@ void flatPostProcess(genthread_t* l_thread)
 							if ((dx & distance) == 0  &&  (dz & distance) == 0)
 							{
 								if (rand < 0.6 && air > 32)
-								if (snoise2(p.x * 2.0, p.z * 2.0) < 0.0)
+								if (snoise2(p.x * 0.2, p.z * 0.2) < 0.0)
 								{
 									int height = 10 + randf(dx, dy-1, dz) * 20;
 									//otreeJungleVines(dx, dy+1, dz, height);
 									//otreeHuge(dx, dy+1, dz, height);
-									otreeBirch(dx, dy+1, dz, height);
+									//otreeBirch(dx, dy+1, dz, height);
+									otreeSabal(dx, dy+1, dz, height);
 								}
 								
 								//otreeBirch(dx, dy+1, dz);
-								//otreeSabal(dx, dy+1, dz);
+								//otreeSabal(dx, dy+1, dz, 20);
 								//otreeSphere(dx, dy+1, dz);
 								//otreeHuge(dx, dy+1, dz);
-								
 							}
 							else if (rand < 0.18)
 							{

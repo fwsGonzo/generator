@@ -134,51 +134,10 @@ float getnoise_snow(vec3 p)
 
 float getnoise_autumn(vec3 p)
 {
-	p.x *= 0.0025;
-	p.z *= 0.0025;
+	float n0 = sfreq2d(p, 0.0025); // continental
+	float n1 = sfreq2d(p, 0.0015); // land level
 	
-	const float noise0 = 0.25;
-	const float noise1 = 1.0, noise_rel1 = 0.5;
-	const float noise2 = 8.0, noise_rel2 = 16.0;
-	const float noise3 = 0.2;
-	
-	float n0 = sfreq2d(p, noise0); // continental
-	float n1 = sfreq2d(p, noise1); // island ring
-	float n2 = sfreq(p, noise2);   // 3d carve
-	float n3 = sfreq2d(p, noise3); // calm noise
-	float landscape = sfreq2d(p, 0.5);
-	
-	vec3 npos = p * noise_rel1;
-	
-	const float COSN_CURVE = 2.5;
-	const float COSN_FAT   = 0.0;
-	const float COSN_CUTS  = 0.5;
-	
-	#define COSN_aut  cosnoise(npos,  n1, 0.5, 0.5, COSN_CURVE, COSN_FAT, COSN_CUTS)
-	#define COSN_aut2 cosnoise(npos2, n2, 1.0, 1.0, 3.0, COSN_FAT, 0.1)
-	
-	float ramping = (n1 + 1.0) * 0.5;
-	
-	float calm = n3 * 0.5 + 0.5;
-	
-	// rings
-	n1 = p.y + 0.1 + COSN_aut * (1.0 + landscape) * 0.3 + n0 * n2 * 0.05;
-	// ground
-	n1 = n1 * (1.0 - calm) + (p.y - 0.4 + n3 * 0.05) * calm;
-	
-	// 3d carved
-	if (n1 < 0.0 && n1 > -0.5)
-	{
-		vec3 npos2 = p * noise_rel2;
-		
-		const float C_DEPTH    = 0.2;
-		const float C_SHARP    = 3.0;
-		const float C_STRENGTH = 0.02;
-		
-		float cracks = std::abs(landscape) * C_STRENGTH * ramping;
-		
-		n1 += ramp(1.0 - n1 / -C_DEPTH, C_SHARP) * (1.0 + COSN_aut2) * cracks;
-	}
+	n1 = p.y - 0.25 + n0 * 0.1 + n1 * 0.1;
 	
 	return n1;
 }

@@ -19,6 +19,7 @@ int toTerrain(int biome)
 	case 0:
 	case 1:
 		return T_ICECAP;
+		
 	case 2:
 	case 3:
 		return T_SNOW;

@@ -57,7 +57,7 @@ void createTreeOval(int gx, int gy, int gz, int maxheight)
 	
 	// trunk
 	for (int dy = gy; dy < gy + maxheight * 0.63; dy++)
-		setb(gx, dy, gz, _WOODBJORK);
+		setb(gx, dy, gz, _WOODBJORK, true);
 }
 
 void otreeBirch(int gx, int gy, int gz, int height)
@@ -80,7 +80,7 @@ void otreeBirch(int gx, int gy, int gz, int height)
 	
 	int y;
 	for (y = 0; y < trunkh; y++)
-		setb(gx, gy + y, gz, _WOODBJORK, 1, 0);
+		setb(gx, gy + y, gz, _WOODBJORK);
 	
 }
 
@@ -90,7 +90,7 @@ void otreeSabal(int gx, int gy, int gz, int height)
 	
 	int x = gx, y = gy, z = gz;
 	
-	int leaflen = 2 + height / 2.0;
+	int leaflen = 2 + height * 0.5f;
 	
 	const int rays = 24;
 	const float gravity = 0.06;
@@ -99,7 +99,7 @@ void otreeSabal(int gx, int gy, int gz, int height)
 	
 	// make stem
 	vec3 dir(randf(gx + 1, gy, gz - 1), straightness, randf(gx - 1, gy, gz + 1));
-	dir = dir * 2.0 - vec3(1.0); // make -1.0 to 1.0
+	dir = dir * 2.0f - vec3(1.0f); // make -1.0 to 1.0
 	dir.normalize();
 	
 	// starting ray
@@ -157,77 +157,87 @@ void otreeVine(int gx, int gy, int gz, int facing)
 	
 	int y;
 	for (y = 0; y < height; y++)
-		setb(gx, gy-y, gz, _VINES, 0, facing);
+		setb(gx, gy-y, gz, _VINES, facing, false);
 	
 }
 
 void otreeJungleVines(int gx, int gy, int gz, int height)
 {
-	int disks  = 3;
+	const int disks  = 3;
 	int UFO = height * 0.85;
-	int ufosize = height * 0.25;  if (ufosize < 6) { ufosize = 6; disks = 2; }
-	int diskrad = height * 0.25;  if (diskrad < 6) diskrad = 6;
+	int ufosize = height * 0.4;
+	int diskrad = height * 0.4;
 	
 	
-	float dive = 0.75;
+	const float dive = 0.6f;
 	
 	int disk[disks];
-	int d = 0;
-	for (; d < disks; d++)
-		disk[d] = diskrad - powf(fabs(d / (float)disks - 0.5) / 0.5, 1.0) * disks * 2.5;
-	
-	int x, y, z, dx, dy, dz;
-	float rad, r;
-	for (y = 0; y < ufosize; y++)
+	for (int d = 0; d < disks; d++)
 	{
-		rad = y / (float)ufosize;
-		rad = (0.0 + 1.0 * fabs(cos(rad * 3.14 * disks))) * disk[(int)(rad * disks)];
+		disk[d] = diskrad * (1.0f - d / (float)disks * 0.5);
+	}
+	
+	float x = gx;
+	float z = gz;
+	float movex = randf(x+97, gy, z) * 0.3;
+	float movez = randf(x+77, gy, z);
+	movez = (movez > 0) ? 1.0 : -1.0;
+	movez = movex * 0.8 * movez;
+	
+	for (int y = 0; y < height; y++)
+	{
+		// center
+		setb(x, gy + y, z, _WOODPALM);
 		
-		x = gx; z = gz;
-		dy = gy + UFO + y;
+		// sides
+		if (y < height-2)
+		{
+			setb(x, gy + y, z+1, _WOODPALM);
+			if (randf(x, gy + y, z+2) < 0.8)
+				setb(x, gy + y, z+2, _VINES, 0, false);
+			
+			setb(x, gy + y, z-1, _WOODPALM);
+			if (randf(x, gy + y, z-2) < 0.8)
+				setb(x, gy + y, z-2, _VINES, 1, false);
+			
+			setb(x+1, gy + y, z, _WOODPALM);
+			if (randf(x+2, gy + y, z) < 0.8)
+				setb(x+2, gy + y, z, _VINES, 2, false);
+			
+			setb(x-1, gy + y, z, _WOODPALM);
+			if (randf(x-2, gy + y, z) < 0.8)
+				setb(x-2, gy + y, z, _VINES, 3, false);
+		}
 		
-		for (dx = -rad; dx <= rad; dx++)
-		for (dz = -rad; dz <= rad; dz++)
+		x += movex;  z += movez;
+	}
+	
+	for (int y = 0; y < ufosize; y++)
+	{
+		float rad = y / (float)ufosize;
+		rad = std::abs(std::cos(PI * 0.75 + rad * PI * disks)) * disk[(int)(rad * disks)];
+		
+		int dy = gy + UFO + y;
+		
+		for (int dx = -rad; dx <= rad; dx++)
+		for (int dz = -rad; dz <= rad; dz++)
 		{
 			// chamferbox
-			r = (sqrtf(dx*dx + dz*dz) + (abs(dx) + abs(dz))) * 0.5;
-			if (r <= rad) {
+			float r = (std::sqrt(dx*dx + dz*dz) + (std::abs(dx) + std::abs(dz)) * 0.7) * 0.5;
+			if (r <= rad)
+			{
+				setb(x+dx, dy - r * dive, z+dz, _LEAF_LEAFS, false);
 				
-				setb(x+dx, dy - r * dive, z+dz, _LEAF_LEAFS, 1, 0);
-				
-				if ((int)r == (int)rad) {
+				if ((int)r == (int)rad)
+				{
 					// drop vine
 					if (randf(x+dx+7, dy, z+dz-3) < 0.25)
 						otreeVine(x+dx, dy - r * dive, z+dz, ofacing(dx, dz));
-					
 				}
 			}
 		}
 	}
 	
-	for (y = 0; y < height; y++)
-	{
-		// center
-		setb(gx , gy + y, gz , _WOODBROWN, 1, 0);
-		// sides
-		if (y < height-2) {
-			setb(gx, gy + y, gz+1, _WOODPALM, 1, 0);
-			if (randf(gx, gy + y, gz+2) < 0.8)
-				setb(gx, gy + y, gz+2, _VINES, 0, 0);
-			
-			setb(gx, gy + y, gz-1, _WOODPALM, 1, 0);
-			if (randf(gx, gy + y, gz-2) < 0.8)
-				setb(gx, gy + y, gz-2, _VINES, 0, 1);
-			
-			setb(gx+1, gy + y, gz, _WOODPALM, 1, 0);
-			if (randf(gx+2, gy + y, gz) < 0.8)
-				setb(gx+2, gy + y, gz, _VINES, 0, 2);
-			
-			setb(gx-1, gy + y, gz, _WOODPALM, 1, 0);
-			if (randf(gx-2, gy + y, gz) < 0.8)
-				setb(gx-2, gy + y, gz, _VINES, 0, 3);
-		}
-	}
 }
 
 void otreeHugeBranch(int gx, int gy, int gz, float rad, int length)
