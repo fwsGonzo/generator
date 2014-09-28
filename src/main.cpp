@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 {
 	if (argc < 3)
 	{
-		std::cout << "generator [nx] [nz]" << std::endl;
+		std::cout << "generator [wx] [wz]" << std::endl;
 		std::cout << "" << std::endl;
 		return EXIT_SUCCESS;
 	}
@@ -65,20 +65,18 @@ int main(int argc, char* argv[])
 	int nx, nz;
 	if ((nx = atoi(argv[1])) <= 0)
 	{
-		std::cout << "invalid value for [nx] in conversion to integer" << std::endl;
+		std::cout << "invalid value for [wx] in conversion to integer" << std::endl;
 		return EXIT_FAILURE;
 	}
 	if ((nz = atoi(argv[2])) <= 0)
 	{
-		std::cout << "invalid value for [nz] in conversion to integer" << std::endl;
+		std::cout << "invalid value for [wz] in conversion to integer" << std::endl;
 		return EXIT_FAILURE;
 	}
 	
 	/// generator settings  ///
 	const std::string outFolder = "./world";
 	const int NETWORK_SIZE = 256;
-	const int NETWORK_X = nx * NETWORK_SIZE;
-	const int NETWORK_Z = nz * NETWORK_SIZE;
 	
 	const int SECTORS_AXIS = 38;
 	const int NETWORK_LEN  = NETWORK_SIZE / (SECTORS_AXIS - 2 * World::BORDER);
@@ -116,7 +114,7 @@ int main(int argc, char* argv[])
 		logger << Log::INFO << "Generating miniworld " << i++ << " of " << NUM_ITERATIONS << Log::ENDL;
 		logger << Log::INFO << "Internal coordinates: " << x << ", " << z << Log::ENDL;
 		
-		generate(gen, NETWORK_X + x * MINIWORLD_OFS, NETWORK_Z + z * MINIWORLD_OFS, outFolder);
+		generate(gen, nx + x * MINIWORLD_OFS, nz + z * MINIWORLD_OFS, outFolder);
 	}
 	
 	/// start game client ///
