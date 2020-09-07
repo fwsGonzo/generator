@@ -1,12 +1,7 @@
 #ifndef TERRAIN_FUNCTIONS_HPP
 #define TERRAIN_FUNCTIONS_HPP
 
-namespace library
-{
-	class vec3;
-}
-
-extern void  pillars(const library::vec3& p, float frequency, float& noise);
+extern void  pillars(const glm::vec3& p, float frequency, float& noise);
 extern float barchans(double x, double y);
 
 inline double noise1u(int x)

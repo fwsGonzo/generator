@@ -1,13 +1,13 @@
 #include "trees.hpp"
 
-#include <library/math/vector.hpp>
+#include <glm/glm.hpp>
 #include "blocks.hpp"
 #include "generator.h"
 #include "helpers.hpp"
 #include "random.hpp"
 #include <cmath>
 
-using namespace library;
+using namespace glm;
 
 void otreeSphere(int gx, int gy, int gz)
 {
@@ -100,8 +100,8 @@ void otreeSabal(int gx, int gy, int gz, int height)
 	// make stem
 	vec3 dir(randf(gx + 1, gy, gz - 1), straightness, randf(gx - 1, gy, gz + 1));
 	dir = dir * 2.0f - vec3(1.0f); // make -1.0 to 1.0
-	dir.normalize();
-	
+	dir = normalize(dir);
+
 	// starting ray
 	vec3 ray(x, y, z);
 	
@@ -126,11 +126,11 @@ void otreeSabal(int gx, int gy, int gz, int height)
 		ray = vec3(x + 0.5, y, z + 0.5);
 		// create direction
 		dir = vec3(randf(x + n, y - n * 31, gz - n * 31), 1.0, randf(x + n * 31, y + n * 31, z - n));
-		dir = dir * 2.0 - vec3(1.0); // make -1.0 to 1.0
-		dir.normalize();
+		dir = dir * 2.0f - vec3(1.0f); // make -1.0 to 1.0
+		dir = normalize(dir);
 		
 		// ignore rays that are too close to +y vector
-		if (dir.dot(plusy) < 0.9)
+		if (dot(dir, plusy) < 0.9)
 		{
 			for(l = 0; l < leaflen; l++)
 			{

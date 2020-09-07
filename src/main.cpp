@@ -19,7 +19,7 @@ extern void flatPP(Generator&);
 
 void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFolder)
 {
-	//#define TIMING
+	#define TIMING
 	Timer t;
 	world.setCoordinates(wx, wz);
 	
@@ -27,24 +27,24 @@ void generate(Generator& gen, wcoord_t wx, wcoord_t wz, const std::string& outFo
 	Chunks::decompress(outFolder);
 	
 	/// generator world ///
-	t.startNewRound();
+	t.restart();
 	testGen(gen);
 #ifdef TIMING
-	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+	std::cout << "Time: " << t.getTime() << std::endl;
 #endif
 	
 	/// post-process world ///
-	t.startNewRound();
+	t.restart();
 	testPP(gen);
 #ifdef TIMING
-	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+	std::cout << "Time: " << t.getTime() << std::endl;
 #endif
 	
-	t.startNewRound();
+	t.restart();
 	/// finish sectors (count blocks/lights etc.) ///
 	finishSectors(gen);
 #ifdef TIMING
-	std::cout << "Time: " << t.getDeltaTime() << std::endl;
+	std::cout << "Time: " << t.getTime() << std::endl;
 #endif
 	
 	/// compress and write sectors to disk ///
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 	const int NETWORK_LEN  = NETWORK_SIZE / (SECTORS_AXIS - 2 * World::BORDER);
 	/// ------------------- ///
 	
-	//logger.open("generator.log");
+	logger.open("generator.log");
 	logger << Log::INFO << "* Starting up generator..." << Log::ENDL;
 	
 	// delete old *.compressed files

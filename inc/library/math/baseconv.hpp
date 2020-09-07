@@ -5,12 +5,12 @@
 
 namespace library
 {
-	class BaseConv
-	{
-	public:
-		static std::string base32(unsigned int coordinate, int length);
-		static std::string base64(unsigned int coordinate, int length);
-	};
-}
+class BaseConv
+{
+public:
+    static std::string base32(unsigned int coordinate, int length);
+    static std::string base64(unsigned int coordinate, int length);
+};
+} // namespace library
 
 #endif

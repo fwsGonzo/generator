@@ -1,6 +1,7 @@
-#include "terrain.hpp"
+#include <glm/glm.hpp>
+using namespace glm;
 
-#include <library/math/vector.hpp>
+#include "terrain.hpp"
 #include "generator.h"
 #include "blocks.hpp"
 #include <cmath>
@@ -13,8 +14,6 @@
 #define sfreq2d(v, n) snoise2(v.x * n, v.z * n)
 
 // individual noise functions for each terrain type
-
-using namespace library;
 
 float lower_grass(vec3 p);
 
@@ -71,7 +70,7 @@ float getnoise_icecap(vec3 p)
 	p.z *= 0.005;
 	float n1 = sfreq2d(p, 0.5);
 	float n2 = sfreq2d(p, 0.15);
-	vec3 npos = p / 4.0; // the relationship between n1 and npos is 4 / 0.5
+	vec3 npos = p / 4.0f; // the relationship between n1 and npos is 4 / 0.5
 	
 	const float COSN_CURVE = 0.5; // sharper waves at higher value, crested waves at values < 1.0
 	const float COSN_FAT   = 0.0;
@@ -82,6 +81,7 @@ float getnoise_icecap(vec3 p)
 	
 	return p.y - 0.3 + COSN_icecap1 * 0.05 + COSN_icecap2 * 0.1;
 }
+
 
 float getnoise_snow(vec3 p)
 {
@@ -96,7 +96,7 @@ float getnoise_snow(vec3 p)
 	float c1 = sfreq2d(p, 0.5);
 	float c2 = sfreq2d(p, 0.25);
 	
-	vec3 npos = p / 4.0; // the relationship between n1 and npos is 4 / 3
+	vec3 npos = p / 4.0f; // the relationship between n1 and npos is 4 / 3
 	
 	const float COSN_CURVE = 0.5; // sharper waves at higher value, crested waves at values < 1.0
 	const float COSN_FAT   = 0.0;

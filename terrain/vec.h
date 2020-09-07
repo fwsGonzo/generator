@@ -1,8 +1,8 @@
 #ifndef VEC_H
 #define VEC_H
 
-#include <library/math/vector.hpp>
+#include <glm/glm.hpp>
 
-extern library::vec3 getnormal(float n10, float n01, float delta);
+extern glm::vec3 getnormal(float n10, float n01, float delta);
 
 #endif

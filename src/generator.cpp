@@ -1,6 +1,6 @@
 #include "generator.hpp"
 
-#include <library/threading/TThreadPool.hpp>
+#include <thrpool/TThreadPool.hh>
 #include <genthread.h>
 #include <sectors.hpp>
 #include <world.hpp>
