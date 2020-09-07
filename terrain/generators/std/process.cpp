@@ -1,6 +1,6 @@
 #include "process.hpp"
 
-#include <library/math/vector.hpp>
+#include <glm/glm.hpp>
 #include <blocks.hpp>
 #include <generator.h>
 #include <genthread.h>
@@ -13,7 +13,7 @@
 #include "objects/volumetrics.hpp"
 #include "noise/simplex1234.h"
 
-using namespace library;
+using namespace glm;
 
 // terrain crosses
 block_t c_autumn[3] = { _GRASS_SHORT, _GRASS_LONG, _PLANT_DRYBROWN };

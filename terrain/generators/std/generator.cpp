@@ -1,6 +1,4 @@
-#include "generator.hpp"
-
-#include <library/math/vector.hpp>
+#include <glm/glm.hpp>
 #include <blocks.hpp>
 #include <generator.h>
 #include <genthread.h>
@@ -8,10 +6,12 @@
 #include <sectors.hpp>
 #include <biome/biome.hpp>
 #include <noise/simplex1234.h>
-#include "terrain.hpp"
 #include <cmath>
 
-using namespace library;
+using namespace glm;
+
+#include "terrain.hpp"
+#include "generator.hpp"
 
 /*
 	Simple terrain getter, returns only basic materials

@@ -1,6 +1,6 @@
 #include "biome.hpp"
 
-#include <library/math/vector.hpp>
+#include <glm/glm.hpp>
 #include <generator.h>
 #include <genthread.h>
 #include "noise/simplex1234.h"
@@ -9,7 +9,7 @@
 // colors for 2D gradients
 #include "colortable.hpp"
 
-using namespace library;
+using namespace glm;
 
 int toTerrain(int biome)
 {

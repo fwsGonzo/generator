@@ -29,7 +29,7 @@ CCFLAGS = -c -Wall -Wextra -pedantic -Iinc -Iterrain
 # linker flags
 LFLAGS  = -Llib -llibrary -lpthread -llzo2 -Wl,-rpath,../lib
 ifeq ($(OS),Windows_NT)
-	LFLAGS  = -Llib -static -llibrary -lpthread -llzo2
+	LFLAGS  = -Llib -static -llibrary -lpthread -llzo2 -lthrpool
 endif
 # resource builder
 RES = windres

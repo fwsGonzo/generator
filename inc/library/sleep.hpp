@@ -3,8 +3,8 @@
 
 namespace library
 {
-	void sleepMillis(int millis);
-	void relinquishCPU();
-}
+void sleepMillis(int millis);
+void relinquishCPU();
+} // namespace library
 
 #endif

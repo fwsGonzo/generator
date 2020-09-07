@@ -5,7 +5,7 @@
 // marsh (colors, trees)
 // autumn
 
-using namespace library;
+using namespace glm;
 
 vec3 getnormal3(float n10, float n01, float delta)
 {

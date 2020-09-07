@@ -2,6 +2,7 @@
  * Flat world generator
  * 
 **/
+#include <glm/glm.hpp>
 #include <library/log.hpp>
 #include <generator.h>
 #include <genthread.h>
@@ -19,7 +20,7 @@ void flatTerrain(genthread_t* l_thread)
 	Sector* s = nullptr;
 	int wx = l_thread->x;
 	int wz = l_thread->z;
-	vec3 p;
+	glm::vec3 p;
 	
 	int by; // local sector coordinate (0 to 7)
 	unsigned short id = _AIR;

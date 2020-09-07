@@ -1,6 +1,6 @@
 #include "flatpp.hpp"
 
-#include <library/math/vector.hpp>
+#include <glm/glm.hpp>
 #include <blocks.hpp>
 #include <generator.h>
 #include <genthread.h>
@@ -11,7 +11,7 @@
 #include <objects/house.hpp>
 #include <objects/trees.hpp>
 
-using namespace library;
+using namespace glm;
 
 block_t flat_grass[6] = { _GRASS_LONG, _GRASS_SHORT, _FLOWERREDMAG, _FLOWERROSE, _FLOWERYELLOW, _FLOWERRED };
 

@@ -6,30 +6,25 @@
 /**
  * Create, check that its "good", then render!
  * This model is specially made to be used with the XModel class
- * 
-**/
+ *
+ **/
 
 namespace library
 {
-	class VoxelModel
-	{
-	private:
-		VAO vao;
-		
-	public:
-		VoxelModel() {}
-		VoxelModel(const VoxelModel& vx);
-		
-		void create(GLsizei vertices, GLvoid* data);
-		
-		inline bool isGood() const
-		{
-			return vao.isGood();
-		}
-		
-		void render();
-		void render(GLint mode);
-	};
-}
+class VoxelModel
+{
+public:
+    VoxelModel(GLsizei vertices, GLvoid* data);
+    VoxelModel(const VoxelModel& vx);
+
+    bool isGood() const { return vao.good(); }
+
+    void render();
+    void render(GLint mode);
+
+private:
+    VAO vao;
+};
+} // namespace library
 
 #endif

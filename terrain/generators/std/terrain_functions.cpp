@@ -1,9 +1,5 @@
-#include "terrain_functions.hpp"
 
-#include <library/math/vector.hpp>
-#include "generator.h"
-#include "blocks.hpp"
-#include "vec.h"
+#include <glm/glm.hpp>
 #include <math.h>
 
 #include "noise/cosnoise.h"
@@ -12,9 +8,15 @@
 #define sfreq(v, n) snoise3(v.x * n, v.y * n, v.z * n)
 #define sfreq2d(v, n) snoise2(v.x * n, v.z * n)
 
-using namespace library;
+using namespace glm;
 
-void pillars(const vec3& p, float frequency, float& noise)
+#include "terrain_functions.hpp"
+#include "generator.h"
+#include "blocks.hpp"
+//#include "vec.h"
+
+
+void pillars(const glm::vec3& p, float frequency, float& noise)
 {
 	// variable radius
 	float pillarRadiusCurve = 1.0 - pow(1.0 - p.y, 0.5);
